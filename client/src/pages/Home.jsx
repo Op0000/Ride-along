@@ -5,7 +5,7 @@ import PostRide from './PostRide.jsx'
 export default function Home() {
   const [rides, setRides] = useState([])
 
-  const API_URL = 'https://your-backend.onrender.com/api/rides' // Replace with actual
+  const API_URL = 'https://ride-along-api.onrender.com/api/rides' // Replace with actual
 
   useEffect(() => {
     fetchRides()
