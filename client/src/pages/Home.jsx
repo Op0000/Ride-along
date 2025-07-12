@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import SearchRide from './SearchRide'
+import SearchRide from './SearchRide.jsx'
 import PostRide from './PostRide'
 
 export default function Home() {
