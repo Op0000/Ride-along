@@ -8,18 +8,21 @@ export default function Home() {
   const API_URL = 'https://ride-along-api.onrender.com/api/rides'
 
   useEffect(() => {
-    fetchRides()
-  }, [])
+  fetchRides()
+}, [])
 
-  const fetchRides = async () => {
-    try {
-      const res = await fetch(API_URL)
-      const data = await res.json()
-      setRides(data)
-    } catch (err) {
-      console.error('Error fetching rides:', err)
-    }
+const fetchRides = async () => {
+  try {
+    console.log("Fetching from API:", API_URL)
+    const res = await fetch(API_URL)
+    console.log("Status:", res.status)
+    const data = await res.json()
+    console.log("Got data:", data)
+    setRides(data)
+  } catch (err) {
+    console.error('Error fetching rides:', err)
   }
+}
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white px-4 py-6">
