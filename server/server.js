@@ -1,3 +1,5 @@
+import cors from 'cors'
+app.use(cors())
 import app from './app.js'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
