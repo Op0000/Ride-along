@@ -1,0 +1,1 @@
+{ "name": "ridealong", "private": true, "workspaces": ["client", "server"] }
