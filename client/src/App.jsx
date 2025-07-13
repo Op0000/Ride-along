@@ -3,6 +3,7 @@ import { Routes, Route, Link } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import PostRide from './pages/PostRide.jsx'
 import SearchRides from './pages/SearchRide.jsx'
+import RideDetail from './pages/RideDetail.jsx'
 
 function App() {
   return (
