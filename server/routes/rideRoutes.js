@@ -35,4 +35,16 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/rides/:id — Get single ride by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id)
+    if (!ride) {
+      return res.status(404).json({ error: 'Ride not found' })
+    }
+    res.json(ride)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
 export default router
