@@ -1,8 +1,7 @@
 import { useState } from 'react'
 
 export default function PostRide({ onPost }) {
-  const [form, setForm] = useState({
-    driver: '',
+  const [formData, setFormData] = useState({
     from: '',
     to: '',
     via: '',
@@ -10,42 +9,96 @@ export default function PostRide({ onPost }) {
     seats: '',
   })
 
+  const [loading, setLoading] = useState(false)
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
     try {
-      const res = await fetch('https://your-backend.onrender.com/api/rides', {
+      const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       })
+
       if (res.ok) {
+        const result = await res.json()
+        console.log('Ride posted:', result)
         onPost()
-        setForm({
-          driver: '',
-          from: '',
-          to: '',
-          via: '',
-          price: '',
-          seats: '',
-        })
+        setFormData({ from: '', to: '', via: '', price: '', seats: '' })
+      } else {
+        console.error('Failed to post ride')
       }
     } catch (err) {
-      console.error('Post failed:', err)
+      console.error('Error posting ride:', err)
     }
+
+    setLoading(false)
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <input name="driver" placeholder="Driver Name" value={form.driver} onChange={handleChange} />
-      <input name="from" placeholder="From" value={form.from} onChange={handleChange} />
-      <input name="to" placeholder="To" value={form.to} onChange={handleChange} />
-      <input name="via" placeholder="Via (comma separated)" value={form.via} onChange={handleChange} />
-      <input name="price" placeholder="Price" value={form.price} onChange={handleChange} />
-      <input name="seats" placeholder="Seats Available" value={form.seats} onChange={handleChange} />
-      <button onClick={handleSubmit} className="sm:col-span-2">Post Ride</button>
-    </div>
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <input
+        type="text"
+        name="from"
+        value={formData.from}
+        onChange={handleChange}
+        placeholder="From"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="text"
+        name="to"
+        value={formData.to}
+        onChange={handleChange}
+        placeholder="To"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="text"
+        name="via"
+        value={formData.via}
+        onChange={handleChange}
+        placeholder="Via (optional)"
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="number"
+        name="price"
+        value={formData.price}
+        onChange={handleChange}
+        placeholder="Price (₹)"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="number"
+        name="seats"
+        value={formData.seats}
+        onChange={handleChange}
+        placeholder="Seats"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg"
+      >
+        {loading ? 'Posting...' : 'Post Ride'}
+      </button>
+    </form>
   )
 }
