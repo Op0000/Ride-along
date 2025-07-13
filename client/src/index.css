@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+.input {
+  @apply px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 w-full;
+}
 /* Optional dark mode tweaks */
 body {
   @apply bg-zinc-900 text-white;
