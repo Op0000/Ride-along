@@ -32,13 +32,19 @@ export default function RideDetail() {
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-6">
       <h1 className="text-3xl font-bold text-purple-400 mb-6">Ride Details</h1>
-      <div className="bg-zinc-800 rounded-xl p-6 shadow-lg space-y-3">
+      <div className="bg-zinc-800 rounded-xl p-6 shadow-lg space-y-4 text-lg">
         <div><strong>From:</strong> {ride.from}</div>
         <div><strong>To:</strong> {ride.to}</div>
-        {ride.via && <div><strong>Via:</strong> {ride.via}</div>}
+        {ride.via && ride.via.length > 0 && (
+          <div><strong>Via:</strong> {ride.via.join(', ')}</div>
+        )}
         <div><strong>Price:</strong> ₹{ride.price}</div>
-        <div><strong>Seats:</strong> {ride.seats}</div>
-        <div><strong>Posted:</strong> {new Date(ride.createdAt).toLocaleString()}</div>
+        <div><strong>Seats Available:</strong> {ride.seatsAvailable}</div>
+        <div><strong>Departure Time:</strong> {new Date(ride.departureTime).toLocaleString()}</div>
+        <div><strong>Driver Name:</strong> {ride.driverName}</div>
+        <div><strong>Driver Contact:</strong> {ride.driverContact}</div>
+        <div><strong>Vehicle Number:</strong> {ride.vehicleNumber}</div>
+        <div className="text-sm text-zinc-400"><strong>Posted:</strong> {new Date(ride.createdAt).toLocaleString()}</div>
       </div>
     </div>
   )
