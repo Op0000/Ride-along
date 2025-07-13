@@ -18,10 +18,10 @@ export default function SearchRide({ onResults }) {
       const data = await res.json()
       onResults(data)
     } catch (err) {
-      console.error('Search error:', err)
+      console.error('❌ Search error:', err)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -32,7 +32,7 @@ export default function SearchRide({ onResults }) {
           type="text"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          placeholder="Starting point"
+          placeholder="e.g. Bareilly or Hapur"
           className="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
         />
       </div>
@@ -42,7 +42,7 @@ export default function SearchRide({ onResults }) {
           type="text"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          placeholder="Destination"
+          placeholder="e.g. Noida or Delhi"
           className="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
         />
       </div>
