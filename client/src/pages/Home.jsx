@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import SearchRide from './SearchRide.jsx'
 import PostRide from './PostRide.jsx'
 
@@ -53,13 +54,15 @@ export default function Home() {
             {rides.map((ride) => (
               <li
                 key={ride._id}
-                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600"
+                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600 hover:bg-zinc-600 transition"
               >
-                <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
-                <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
-                {ride.via && <div><span className="font-semibold text-white">Via:</span> {ride.via}</div>}
-                <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
-                <div><span className="font-semibold text-white">Seats:</span> {ride.seats}</div>
+                <Link to={`/ride/${ride._id}`} className="block space-y-1">
+                  <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
+                  <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
+                  {ride.via && <div><span className="font-semibold text-white">Via:</span> {ride.via}</div>}
+                  <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
+                  <div><span className="font-semibold text-white">Seats:</span> {ride.seats}</div>
+                </Link>
               </li>
             ))}
           </ul>
