@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import SearchRide from './SearchRide.jsx'
 import PostRide from './PostRide.jsx'
 
 export default function Home() {
   const [rides, setRides] = useState([])
+  const [showPost, setShowPost] = useState(false)
 
   const API_URL = 'https://ride-along-api.onrender.com/api/rides'
 
@@ -40,8 +40,16 @@ export default function Home() {
 
       {/* Post Section */}
       <div className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-purple-300">Offer a Ride</h2>
-        <PostRide onPost={fetchRides} />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-purple-300">Offer a Ride</h2>
+          <button
+            onClick={() => setShowPost(!showPost)}
+            className="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-lg"
+          >
+            {showPost ? 'Close Form' : 'Post a Ride'}
+          </button>
+        </div>
+        {showPost && <PostRide onPost={fetchRides} />}
       </div>
 
       {/* Ride List */}
@@ -54,15 +62,17 @@ export default function Home() {
             {rides.map((ride) => (
               <li
                 key={ride._id}
-                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600 hover:bg-zinc-600 transition"
+                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600"
               >
-                <Link to={`/ride/${ride._id}`} className="block space-y-1">
-                  <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
-                  <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
-                  {ride.via && <div><span className="font-semibold text-white">Via:</span> {ride.via}</div>}
-                  <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
-                  <div><span className="font-semibold text-white">Seats:</span> {ride.seats}</div>
-                </Link>
+                <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
+                <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
+                {ride.via && ride.via.length > 0 && (
+                  <div><span className="font-semibold text-white">Via:</span> {ride.via.join(', ')}</div>
+                )}
+                <div><span className="font-semibold text-white">Driver:</span> {ride.driverName}</div>
+                <div><span className="font-semibold text-white">Vehicle:</span> {ride.vehicleNumber}</div>
+                <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
+                <div><span className="font-semibold text-white">Seats:</span> {ride.seatsAvailable}</div>
               </li>
             ))}
           </ul>
