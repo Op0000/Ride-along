@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import SearchRide from './SearchRide.jsx'
 import PostRide from './PostRide.jsx'
 
@@ -23,7 +25,12 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white px-4 py-6">
+    <motion.div
+      className="min-h-screen bg-zinc-900 text-white px-4 py-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-extrabold text-purple-400 tracking-tight">
@@ -33,13 +40,23 @@ export default function Home() {
       </div>
 
       {/* Search Section */}
-      <div className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8">
+      <motion.div
+        className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <h2 className="text-2xl font-semibold mb-4 text-purple-300">Search Rides</h2>
         <SearchRide onResults={setRides} />
-      </div>
+      </motion.div>
 
       {/* Post Section */}
-      <div className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8">
+      <motion.div
+        className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-purple-300">Offer a Ride</h2>
           <button
@@ -49,35 +66,54 @@ export default function Home() {
             {showPost ? 'Close Form' : 'Post a Ride'}
           </button>
         </div>
-        {showPost && <PostRide onPost={fetchRides} />}
-      </div>
+        <AnimatePresence>
+          {showPost && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PostRide onPost={fetchRides} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Ride List */}
-      <div className="bg-zinc-800 p-4 rounded-xl shadow-lg">
+      <motion.div
+        className="bg-zinc-800 p-4 rounded-xl shadow-lg"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         <h2 className="text-2xl font-semibold mb-4 text-purple-300">Recent Rides</h2>
         {rides.length === 0 ? (
           <p className="text-zinc-400">No rides found.</p>
         ) : (
           <ul className="space-y-4">
             {rides.map((ride) => (
-              <li
+              <motion.li
                 key={ride._id}
-                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600"
+                className="bg-zinc-700 rounded-lg p-4 border border-zinc-600 hover:bg-zinc-600 transition"
+                whileHover={{ scale: 1.02 }}
               >
-                <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
-                <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
-                {ride.via && ride.via.length > 0 && (
-                  <div><span className="font-semibold text-white">Via:</span> {ride.via.join(', ')}</div>
-                )}
-                <div><span className="font-semibold text-white">Driver:</span> {ride.driverName}</div>
-                <div><span className="font-semibold text-white">Vehicle:</span> {ride.vehicleNumber}</div>
-                <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
-                <div><span className="font-semibold text-white">Seats:</span> {ride.seatsAvailable}</div>
-              </li>
+                <Link to={`/ride/${ride._id}`} className="block space-y-1">
+                  <div><span className="font-semibold text-white">From:</span> {ride.from}</div>
+                  <div><span className="font-semibold text-white">To:</span> {ride.to}</div>
+                  {ride.via && ride.via.length > 0 && (
+                    <div><span className="font-semibold text-white">Via:</span> {ride.via.join(', ')}</div>
+                  )}
+                  <div><span className="font-semibold text-white">Driver:</span> {ride.driverName}</div>
+                  <div><span className="font-semibold text-white">Vehicle:</span> {ride.vehicleNumber}</div>
+                  <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
+                  <div><span className="font-semibold text-white">Seats:</span> {ride.seatsAvailable}</div>
+                </Link>
+              </motion.li>
             ))}
           </ul>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
