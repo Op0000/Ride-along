@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 
 const RideSchema = new mongoose.Schema({
   driverName: { type: String, required: true },
+  driverContact: { type: String, required: true },       // ✅ NEW
+  vehicleNumber: { type: String, required: true },        // ✅ NEW
   from: { type: String, required: true },
   to: { type: String, required: true },
   via: { type: [String] }, // optional
