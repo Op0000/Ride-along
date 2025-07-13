@@ -7,6 +7,10 @@ export default function PostRide({ onPost }) {
     via: '',
     price: '',
     seats: '',
+    driverName: '',
+    driverContact: '',
+    vehicleNumber: '',
+    departureTime: ''
   })
 
   const [loading, setLoading] = useState(false)
@@ -35,7 +39,17 @@ export default function PostRide({ onPost }) {
         const result = await res.json()
         console.log('Ride posted:', result)
         onPost()
-        setFormData({ from: '', to: '', via: '', price: '', seats: '' })
+        setFormData({
+          from: '',
+          to: '',
+          via: '',
+          price: '',
+          seats: '',
+          driverName: '',
+          driverContact: '',
+          vehicleNumber: '',
+          departureTime: ''
+        })
       } else {
         console.error('Failed to post ride')
       }
@@ -92,6 +106,44 @@ export default function PostRide({ onPost }) {
         required
         className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
       />
+
+      {/* New Fields */}
+      <input
+        type="text"
+        name="driverName"
+        value={formData.driverName}
+        onChange={handleChange}
+        placeholder="Driver's Name"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="text"
+        name="driverContact"
+        value={formData.driverContact}
+        onChange={handleChange}
+        placeholder="Driver Contact"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="text"
+        name="vehicleNumber"
+        value={formData.vehicleNumber}
+        onChange={handleChange}
+        placeholder="Vehicle Number"
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+      <input
+        type="datetime-local"
+        name="departureTime"
+        value={formData.departureTime}
+        onChange={handleChange}
+        required
+        className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
+      />
+
       <button
         type="submit"
         disabled={loading}
