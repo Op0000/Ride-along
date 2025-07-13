@@ -6,7 +6,7 @@ export default function PostRide({ onPost }) {
     to: '',
     via: '',
     price: '',
-    seats: '',
+    seatsAvailable: '',
     driverName: '',
     driverContact: '',
     vehicleNumber: '',
@@ -44,17 +44,17 @@ export default function PostRide({ onPost }) {
           to: '',
           via: '',
           price: '',
-          seats: '',
+          seatsAvailable: '',
           driverName: '',
           driverContact: '',
           vehicleNumber: '',
           departureTime: ''
         })
       } else {
-        console.error('Failed to post ride')
+        console.error('❌ Failed to post ride')
       }
     } catch (err) {
-      console.error('Error posting ride:', err)
+      console.error('❌ Error posting ride:', err)
     }
 
     setLoading(false)
@@ -99,15 +99,15 @@ export default function PostRide({ onPost }) {
       />
       <input
         type="number"
-        name="seats"
-        value={formData.seats}
+        name="seatsAvailable"
+        value={formData.seatsAvailable}
         onChange={handleChange}
-        placeholder="Seats"
+        placeholder="Seats Available"
         required
         className="px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600"
       />
 
-      {/* New Fields */}
+      {/* ✅ New Fields */}
       <input
         type="text"
         name="driverName"
