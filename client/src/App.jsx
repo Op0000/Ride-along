@@ -19,6 +19,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/post" element={<PostRide />} />
         <Route path="/search" element={<SearchRides />} />
+        <Route path="/ride/:id" element={<RideDetail />} />
       </Routes>
     </div>
   )
