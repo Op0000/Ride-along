@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 const bookingSchema = new mongoose.Schema({
   rideId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ride', required: true },
-  userId: { type: String, required: true }, // Firebase UID
+  userId: { type: String, required: true },
   seatsBooked: { type: Number, default: 1 },
   name: { type: String, required: true },
   age: { type: Number, required: true },
