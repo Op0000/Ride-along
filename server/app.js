@@ -3,6 +3,7 @@ import cors from 'cors'
 import rideRoutes from './routes/rideRoutes.js'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/users.js'
+import bookingRoutes from './routes/bookingRoutes.js'
 
 const app = express()
 
@@ -14,4 +15,5 @@ app.use(express.json()) // Parses JSON bodies
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/bookings', bookingRoutes)
 export default app
