@@ -23,7 +23,6 @@ function App() {
   const dropdownRef = useRef()
   const navigate = useNavigate()
 
-  // Track auth changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
@@ -32,7 +31,6 @@ function App() {
     return () => unsubscribe()
   }, [auth])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -69,32 +67,32 @@ function App() {
     <div>
       <nav className="p-4 bg-blue-600 text-white flex justify-between items-center">
         <Link to="/" className="font-bold text-xl">Ride Along</Link>
-        <div className="space-x-4 flex items-center relative" ref={dropdownRef}>
-          <Link to="/post">Post Ride</Link>
-          <Link to="/search">Search</Link>
+        <div className="flex items-center gap-4 relative" ref={dropdownRef}>
+          <Link to="/post" className="hover:underline">Post Ride</Link>
+          <Link to="/search" className="hover:underline">Search</Link>
 
           {user ? (
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="font-semibold hover:underline"
+                className="bg-white text-blue-600 font-semibold px-3 py-1 rounded hover:bg-blue-100 transition"
               >
-                {user.displayName || 'User'}
+                {user.displayName?.split(' ')[0] || 'User'} ⌄
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow-md z-50">
+                <div className="absolute right-0 mt-2 w-44 bg-white text-blue-700 rounded shadow-lg z-50 animate-fade-in-down">
                   <Link
                     to="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 hover:bg-gray-200"
+                    className="block px-4 py-2 hover:bg-blue-100 transition"
                   >
-                    Profile
+                    👤 Profile
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-200"
+                    className="w-full text-left px-4 py-2 hover:bg-blue-100 transition"
                   >
-                    Logout
+                    🚪 Logout
                   </button>
                 </div>
               )}
@@ -102,7 +100,7 @@ function App() {
           ) : (
             <button
               onClick={handleLogin}
-              className="bg-white text-blue-600 px-3 py-1 rounded font-semibold"
+              className="bg-white text-blue-600 px-3 py-1 rounded font-semibold hover:bg-blue-100 transition"
             >
               Login with Google
             </button>
