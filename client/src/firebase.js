@@ -1,6 +1,6 @@
 // client/src/firebase.js
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, browserLocalPersistence } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: "AIzaSyDi263BYC5vuqljXaEY_WPj_06gZdt9PqY",
@@ -13,4 +13,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-export const googleProvider = new GoogleAuthProvider()
+setPersistence(auth, browserLocalPersistence).catch(console.error)
