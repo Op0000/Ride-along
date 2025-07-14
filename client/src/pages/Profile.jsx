@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { getAuth } from 'firebase/auth'
 
 export default function Profile() {
@@ -9,139 +9,72 @@ export default function Profile() {
     name: '',
     age: '',
     gender: '',
-    phone: '',
     email: '',
+    phone: ''
   })
 
-  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (user) {
+    const fetchUser = async () => {
+      if (!user) return
+      const res = await fetch(`https://ride-along-api.onrender.com/api/users/${user.uid}`)
+      const data = await res.json()
       setFormData({
-        name: user.displayName || '',
-        age: '',
-        gender: '',
-        phone: '',
-        email: user.email || '',
+        name: data.name || user.displayName || '',
+        age: data.age || '',
+        gender: data.gender || '',
+        email: data.email || user.email || '',
+        phone: data.phone || ''
       })
     }
+
+    fetchUser()
   }, [user])
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleEdit = () => setIsEditing(true)
-
-  const handleSave = () => {
-    setIsEditing(false)
-    // You can send formData to the backend or database here
-    console.log('Saved profile data:', formData)
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('https://ride-along-api.onrender.com/api/users/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: user.uid, ...formData })
+      })
+      if (res.ok) alert('✅ Profile saved!')
+    } catch (err) {
+      alert('❌ Failed to save profile')
+    }
+    setSaving(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 to-zinc-900 text-white flex justify-center items-center p-4">
-      <div className="bg-zinc-800 p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6">
-        <h1 className="text-3xl font-bold text-purple-400 text-center">👤 Profile</h1>
+    <div className="min-h-screen bg-zinc-900 text-white p-6">
+      <div className="max-w-xl mx-auto bg-zinc-800 rounded-2xl p-6 shadow-lg space-y-4">
+        <h2 className="text-3xl font-bold text-purple-400 mb-4">🧑 Profile Info</h2>
 
-        <div className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-zinc-400 mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full px-4 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 transition-all duration-300 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-purple-500' : 'opacity-60 cursor-not-allowed'
-              }`}
-            />
-          </div>
+        <input name="name" value={formData.name} onChange={handleChange} placeholder="Name"
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
+        <input name="age" type="number" value={formData.age} onChange={handleChange} placeholder="Age"
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
+        <input name="gender" value={formData.gender} onChange={handleChange} placeholder="Gender"
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
+        <input name="email" value={formData.email} onChange={handleChange} placeholder="Email"
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
+        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone No."
+          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
 
-          {/* Age */}
-          <div>
-            <label className="block text-zinc-400 mb-1">Age</label>
-            <input
-              type="number"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full px-4 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 transition-all duration-300 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-purple-500' : 'opacity-60 cursor-not-allowed'
-              }`}
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="block text-zinc-400 mb-1">Gender</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full px-4 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 transition-all duration-300 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-purple-500' : 'opacity-60 cursor-not-allowed'
-              }`}
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-zinc-400 mb-1">Phone Number</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={!isEditing}
-              className={`w-full px-4 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 transition-all duration-300 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-purple-500' : 'opacity-60 cursor-not-allowed'
-              }`}
-            />
-          </div>
-
-          {/* Email (Non-editable) */}
-          <div>
-            <label className="block text-zinc-400 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              disabled
-              className="w-full px-4 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 opacity-60 cursor-not-allowed"
-            />
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-center gap-4 mt-6">
-          {isEditing ? (
-            <button
-              onClick={handleSave}
-              className="bg-green-500 hover:bg-green-600 px-6 py-2 rounded-lg font-semibold text-white transition-all"
-            >
-              Save
-            </button>
-          ) : (
-            <button
-              onClick={handleEdit}
-              className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg font-semibold text-white transition-all"
-            >
-              Edit
-            </button>
-          )}
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold"
+        >
+          {saving ? 'Saving...' : '💾 Save Profile'}
+        </button>
       </div>
     </div>
   )
-      }
+}
