@@ -62,34 +62,40 @@ export default function RideDetail() {
   }, [id, user])
 
   const handleBooking = async () => {
-  setBookingLoading(true)
-  try {
-    const res = await fetch(`${API}/api/bookings/book`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rideId: id, userId: user.uid, ...profile })
-    })
+    setBookingLoading(true)
+    try {
+      const res = await fetch(`${API}/api/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rideId: id,
+          userId: user.uid,
+          userEmail: user.email,
+          userName: profile.name,
+          userPhone: profile.phone,
+          userAge: profile.age,
+          userGender: profile.gender
+        })
+      })
 
-    const data = await res.json() // <-- Get detailed error message
-
-    if (res.ok) {
-      setUserHasBooked(true)
-      setBookingSuccess(true)
-      setShowForm(false)
-      setRide((prev) => ({
-        ...prev,
-        seatsAvailable: prev.seatsAvailable - 1
-      }))
-      setTimeout(() => setBookingSuccess(false), 3000)
-    } else {
-      alert(`Booking failed: ${data.error || 'Unknown error'}`) // Show the real error
+      if (res.ok) {
+        setUserHasBooked(true)
+        setBookingSuccess(true)
+        setShowForm(false)
+        setRide((prev) => ({
+          ...prev,
+          seatsAvailable: prev.seatsAvailable - 1
+        }))
+        setTimeout(() => setBookingSuccess(false), 3000)
+      } else {
+        alert('Booking failed. Try again.')
+      }
+    } catch (err) {
+      console.error('Booking error:', err)
+      alert('Something went wrong.')
+    } finally {
+      setBookingLoading(false)
     }
-  } catch (err) {
-    console.error('Booking error:', err)
-    alert('Something went wrong.')
-  } finally {
-    setBookingLoading(false)
-  }
   }
 
   if (loading) return <p className="text-center mt-10 text-purple-300">Loading...</p>
@@ -123,13 +129,7 @@ export default function RideDetail() {
 
         {!userHasBooked && !showForm && (
           <button
-            onClick={() => {
-              if (!user) {
-                alert('Please login to book a ride.')
-                return
-              }
-              setShowForm(true)
-            }}
+            onClick={() => setShowForm(true)}
             disabled={ride.seatsAvailable <= 0}
             className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50"
           >
@@ -173,4 +173,4 @@ export default function RideDetail() {
       </div>
     </div>
   )
-    }
+          }
