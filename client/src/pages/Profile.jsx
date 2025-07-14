@@ -4,76 +4,90 @@ import { getAuth } from 'firebase/auth'
 export default function Profile() {
   const auth = getAuth()
   const user = auth.currentUser
-
-  const [formData, setFormData] = useState({
+  const [details, setDetails] = useState({
     name: '',
     age: '',
     gender: '',
-    email: '',
-    phone: ''
+    phone: '',
+    email: ''
   })
+  const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
 
-  const [saving, setSaving] = useState(false)
+  const API_BASE = 'https://ride-along-api.onrender.com/api/users'
 
   useEffect(() => {
+    if (!user) return
+
     const fetchUser = async () => {
-      if (!user) return
-      const res = await fetch(`https://ride-along-api.onrender.com/api/users/${user.uid}`)
-      const data = await res.json()
-      setFormData({
-        name: data.name || user.displayName || '',
-        age: data.age || '',
-        gender: data.gender || '',
-        email: data.email || user.email || '',
-        phone: data.phone || ''
-      })
+      try {
+        const res = await fetch(`${API_BASE}/${user.uid}`)
+        if (res.ok) {
+          const data = await res.json()
+          setDetails(data)
+        } else {
+          setDetails({ ...details, email: user.email, name: user.displayName })
+        }
+      } catch (err) {
+        console.error('Fetch failed:', err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     fetchUser()
   }, [user])
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    setDetails((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const handleSave = async () => {
-    setSaving(true)
     try {
-      const res = await fetch('https://ride-along-api.onrender.com/api/users/save', {
+      const res = await fetch(`${API_BASE}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: user.uid, ...formData })
+        body: JSON.stringify({ uid: user.uid, ...details })
       })
-      if (res.ok) alert('✅ Profile saved!')
+
+      if (res.ok) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
     } catch (err) {
-      alert('❌ Failed to save profile')
+      console.error('Save failed:', err)
     }
-    setSaving(false)
   }
+
+  if (loading) return <div className="text-center mt-10 text-white">Loading...</div>
 
   return (
     <div className="min-h-screen bg-zinc-900 text-white p-6">
-      <div className="max-w-xl mx-auto bg-zinc-800 rounded-2xl p-6 shadow-lg space-y-4">
-        <h2 className="text-3xl font-bold text-purple-400 mb-4">🧑 Profile Info</h2>
-
-        <input name="name" value={formData.name} onChange={handleChange} placeholder="Name"
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
-        <input name="age" type="number" value={formData.age} onChange={handleChange} placeholder="Age"
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
-        <input name="gender" value={formData.gender} onChange={handleChange} placeholder="Gender"
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
-        <input name="email" value={formData.email} onChange={handleChange} placeholder="Email"
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
-        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone No."
-          className="w-full bg-zinc-700 text-white px-4 py-2 rounded-lg" />
+      <h1 className="text-3xl font-bold text-purple-400 mb-6">Your Profile</h1>
+      <div className="bg-zinc-800 p-6 rounded-xl max-w-md mx-auto space-y-4 shadow-lg">
+        {['name', 'age', 'gender', 'phone', 'email'].map((field) => (
+          <div key={field}>
+            <label className="block text-sm mb-1 capitalize">{field}</label>
+            <input
+              name={field}
+              type={field === 'age' ? 'number' : 'text'}
+              value={details[field] || ''}
+              onChange={handleChange}
+              className="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+        ))}
 
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold"
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition"
         >
-          {saving ? 'Saving...' : '💾 Save Profile'}
+          Save Changes
         </button>
+
+        {saved && (
+          <p className="text-green-400 text-center animate-pulse mt-2">✅ Profile updated</p>
+        )}
       </div>
     </div>
   )
