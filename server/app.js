@@ -11,6 +11,10 @@ const app = express()
 app.use(cors())
 app.use(express.json()) // Parses JSON bodies
 
+app.use('/api/bookings', (req, res, next) => {
+  console.log('[BOOKING PAYLOAD]', req.body)
+  next()
+}) // Debug
 // Routes
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
