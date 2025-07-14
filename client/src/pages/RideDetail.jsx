@@ -63,12 +63,23 @@ export default function RideDetail() {
 
   const handleBooking = async () => {
   // Validate profile fields
-  if (!profile.name || !profile.phone || !profile.age) {
-    alert('Please fill all required fields: Name, Phone, and Age.');
+  if (!user) {
+    alert('Please login before continuing');
     return;
   }
 
   setBookingLoading(true);
+    const payload = {
+    rideId: id,
+    userId: user.uid,
+    userEmail: user.email || profile.email, // Fallback for email
+    userName: profile.name,
+    userPhone: profile.phone,
+    userAge: profile.age,
+    userGender: profile.gender,
+  };
+  console.log("Booking Payload:", payload);
+    
   try {
     const res = await fetch(`${API}/api/bookings`, {
       method: 'POST',
