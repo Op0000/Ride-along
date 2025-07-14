@@ -6,27 +6,35 @@ const router = express.Router()
 
 // ✅ POST /api/bookings - Make a booking
 router.post('/', async (req, res) => {
-  const { rideId, userId, name, age, gender, phone, email } = req.body
+  const {
+    rideId,
+    userId,
+    userEmail,
+    userName,
+    userPhone,
+    userAge,
+    userGender
+  } = req.body
 
   try {
     const ride = await Ride.findById(rideId)
-    if (!ride) return res.status(404).json({ error: 'Ride not found' })
-    if (ride.seatsAvailable <= 0) return res.status(400).json({ error: 'No seats available' })
+    if (!ride || ride.seatsAvailable < 1) {
+      return res.status(400).json({ error: 'Ride not found or no seats left' })
+    }
 
-    // Reduce seat count
+    // Update seat count
     ride.seatsAvailable -= 1
     await ride.save()
 
-    // Save booking
     const booking = new Booking({
       rideId,
       userId,
-      seatsBooked: 1,
-      name,
-      age,
-      gender,
-      phone,
-      email
+      userEmail,
+      userName,
+      userPhone,
+      userAge,
+      userGender,
+      seatsBooked: 1
     })
 
     await booking.save()
@@ -34,10 +42,9 @@ router.post('/', async (req, res) => {
     res.status(201).json({ message: 'Booking successful', booking })
   } catch (err) {
     console.error('[BOOKING ERROR]', err)
-    res.status(500).json({ error: 'Server error during booking' })
+    res.status(500).json({ error: err.message })
   }
 })
-
 // ✅ GET /api/bookings/user/:uid - Fetch bookings for a user
 router.get('/user/:uid', async (req, res) => {
   try {
