@@ -25,6 +25,9 @@ export default function PostRide({ onPost }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    console.log('PostRide response status:', res.status);
+const result = await res.json();
+console.log('PostRide payload:', result);
 
     // ✅ Sanitize and transform data
     const payload = {
