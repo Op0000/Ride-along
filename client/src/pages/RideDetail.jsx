@@ -10,12 +10,13 @@ export default function RideDetail() {
   const [userHasBooked, setUserHasBooked] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [bookingLoading, setBookingLoading] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [profile, setProfile] = useState({ name: '', age: '', gender: '', phone: '', email: '' })
 
   const auth = getAuth()
   const user = auth.currentUser
   const API = 'https://ride-along-api.onrender.com'
 
-  // Fetch ride + booking status
   useEffect(() => {
     const fetchRide = async () => {
       try {
@@ -42,24 +43,39 @@ export default function RideDetail() {
       }
     }
 
+    const fetchProfile = async () => {
+      if (!user) return
+      try {
+        const res = await fetch(`${API}/api/users/${user.uid}`)
+        if (res.ok) {
+          const data = await res.json()
+          setProfile(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err)
+      }
+    }
+
     fetchRide()
     checkBooking()
+    fetchProfile()
   }, [id, user])
 
   const handleBooking = async () => {
-    if (!user) return alert("Please login to book.")
+    if (!user) return alert('You must be logged in to book a ride.')
 
     setBookingLoading(true)
     try {
       const res = await fetch(`${API}/api/bookings/book`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rideId: id, userId: user.uid })
+        body: JSON.stringify({ rideId: id, userId: user.uid, ...profile })
       })
 
       if (res.ok) {
         setUserHasBooked(true)
         setBookingSuccess(true)
+        setShowForm(false)
         setRide((prev) => ({
           ...prev,
           seatsAvailable: prev.seatsAvailable - 1
@@ -105,14 +121,44 @@ export default function RideDetail() {
           </div>
         )}
 
-        {!userHasBooked && (
+        {!userHasBooked && !showForm && (
           <button
-            onClick={handleBooking}
-            disabled={bookingLoading || ride.seatsAvailable <= 0}
+            onClick={() => {
+              if (!user) {
+                alert('Please login to book a ride.')
+                return
+              }
+              setShowForm(true)
+            }}
+            disabled={ride.seatsAvailable <= 0}
             className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-semibold transition disabled:opacity-50"
           >
-            {bookingLoading ? "Booking..." : "Book Ride"}
+            Book Ride
           </button>
+        )}
+
+        {showForm && (
+          <div className="mt-4 bg-zinc-700 p-4 rounded-lg space-y-3 animate-fade-in-down">
+            {['name', 'age', 'gender', 'phone', 'email'].map((field) => (
+              <div key={field}>
+                <label className="block text-sm mb-1 capitalize">{field}</label>
+                <input
+                  name={field}
+                  type={field === 'age' ? 'number' : 'text'}
+                  value={profile[field] || ''}
+                  onChange={(e) => setProfile((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                  className="w-full px-3 py-2 rounded bg-zinc-600 border border-zinc-500 focus:outline-none focus:ring focus:ring-purple-500"
+                />
+              </div>
+            ))}
+            <button
+              onClick={handleBooking}
+              disabled={bookingLoading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-semibold"
+            >
+              {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+            </button>
+          </div>
         )}
 
         {bookingSuccess && (
@@ -127,4 +173,5 @@ export default function RideDetail() {
       </div>
     </div>
   )
-          }
+        }
+                    
