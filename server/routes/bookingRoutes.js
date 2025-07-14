@@ -54,5 +54,5 @@ router.get('/user/:uid', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
-console.log('[BOOKING REQUEST]', req.body);
+
 export default router
