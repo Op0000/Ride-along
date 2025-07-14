@@ -173,5 +173,4 @@ export default function RideDetail() {
       </div>
     </div>
   )
-        }
-                    
+    }
