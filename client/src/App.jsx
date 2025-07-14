@@ -10,25 +10,26 @@ import RideDetail from './pages/RideDetail.jsx'
 
 function App() {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
   const auth = getAuth()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
+      setLoading(false)
     })
-
     return () => unsubscribe()
   }, [auth])
 
   const handleLogin = async () => {
-  try {
-    const provider = new GoogleAuthProvider()
-    provider.setCustomParameters({ prompt: 'select_account' }) // force account picker
-    await signInWithPopup(auth, provider)
-  } catch (error) {
-    console.error('Login failed:', error)
+    try {
+      const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({ prompt: 'select_account' }) // force account picker
+      await signInWithPopup(auth, provider)
+    } catch (error) {
+      console.error('Login failed:', error)
+    }
   }
-}
 
   const handleLogout = async () => {
     try {
@@ -38,6 +39,8 @@ function App() {
     }
   }
 
+  if (loading) return <div className="text-center mt-10 text-white">Loading...</div>
+
   return (
     <div>
       <nav className="p-4 bg-blue-600 text-white flex justify-between items-center">
@@ -45,7 +48,6 @@ function App() {
         <div className="space-x-4 flex items-center">
           <Link to="/post">Post Ride</Link>
           <Link to="/search">Search</Link>
-
           {user ? (
             <>
               <span className="text-sm">Hi, {user.displayName || 'User'}</span>
