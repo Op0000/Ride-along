@@ -21,13 +21,14 @@ function App() {
   }, [auth])
 
   const handleLogin = async () => {
-    try {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-    } catch (error) {
-      console.error('Login failed:', error)
-    }
+  try {
+    const provider = new GoogleAuthProvider()
+    provider.setCustomParameters({ prompt: 'select_account' }) // force account picker
+    await signInWithPopup(auth, provider)
+  } catch (error) {
+    console.error('Login failed:', error)
   }
+}
 
   const handleLogout = async () => {
     try {
