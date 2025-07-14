@@ -62,34 +62,34 @@ export default function RideDetail() {
   }, [id, user])
 
   const handleBooking = async () => {
-    if (!user) return alert('You must be logged in to book a ride.')
+  setBookingLoading(true)
+  try {
+    const res = await fetch(`${API}/api/bookings/book`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rideId: id, userId: user.uid, ...profile })
+    })
 
-    setBookingLoading(true)
-    try {
-      const res = await fetch(`${API}/api/bookings/book`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rideId: id, userId: user.uid, ...profile })
-      })
+    const data = await res.json() // <-- Get detailed error message
 
-      if (res.ok) {
-        setUserHasBooked(true)
-        setBookingSuccess(true)
-        setShowForm(false)
-        setRide((prev) => ({
-          ...prev,
-          seatsAvailable: prev.seatsAvailable - 1
-        }))
-        setTimeout(() => setBookingSuccess(false), 3000)
-      } else {
-        alert('Booking failed. Try again.')
-      }
-    } catch (err) {
-      console.error('Booking error:', err)
-      alert('Something went wrong.')
-    } finally {
-      setBookingLoading(false)
+    if (res.ok) {
+      setUserHasBooked(true)
+      setBookingSuccess(true)
+      setShowForm(false)
+      setRide((prev) => ({
+        ...prev,
+        seatsAvailable: prev.seatsAvailable - 1
+      }))
+      setTimeout(() => setBookingSuccess(false), 3000)
+    } else {
+      alert(`Booking failed: ${data.error || 'Unknown error'}`) // Show the real error
     }
+  } catch (err) {
+    console.error('Booking error:', err)
+    alert('Something went wrong.')
+  } finally {
+    setBookingLoading(false)
+  }
   }
 
   if (loading) return <p className="text-center mt-10 text-purple-300">Loading...</p>
