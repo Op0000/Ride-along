@@ -1,12 +1,20 @@
 import express from 'express'
 import Ride from '../models/Ride.js'
+import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 
 const router = express.Router()
 
-// ✅ POST /api/rides — Create a new ride
-router.post('/', async (req, res) => {
+// ✅ POST /api/rides — Create a new ride (protected route)
+router.post('/', verifyFirebaseToken, async (req, res) => {
   try {
-    const ride = new Ride(req.body)
+    const user = req.user  // Decoded from Firebase token
+
+    const ride = new Ride({
+      ...req.body,
+      userId: user.uid,
+      userEmail: user.email
+    })
+
     await ride.save()
     res.status(201).json({ message: 'Ride posted!', ride })
   } catch (err) {
@@ -20,7 +28,6 @@ router.get('/', async (req, res) => {
     const { from, to } = req.query
     const rides = await Ride.find()
 
-    // If no filter, return all rides
     if (!from && !to) return res.json(rides)
 
     const filtered = rides.filter((ride) => {
