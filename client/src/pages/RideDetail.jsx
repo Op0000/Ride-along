@@ -62,41 +62,50 @@ export default function RideDetail() {
   }, [id, user])
 
   const handleBooking = async () => {
-    setBookingLoading(true)
-    try {
-      const res = await fetch(`${API}/api/bookings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rideId: id,
-          userId: user.uid,
-          userEmail: user.email,
-          userName: profile.name,
-          userPhone: profile.phone,
-          userAge: profile.age,
-          userGender: profile.gender
-        })
-      })
-
-      if (res.ok) {
-        setUserHasBooked(true)
-        setBookingSuccess(true)
-        setShowForm(false)
-        setRide((prev) => ({
-          ...prev,
-          seatsAvailable: prev.seatsAvailable - 1
-        }))
-        setTimeout(() => setBookingSuccess(false), 3000)
-      } else {
-        alert('Booking failed. Try again.')
-      }
-    } catch (err) {
-      console.error('Booking error:', err)
-      alert('Something went wrong.')
-    } finally {
-      setBookingLoading(false)
-    }
+  // Validate profile fields
+  if (!profile.name || !profile.phone || !profile.age) {
+    alert('Please fill all required fields: Name, Phone, and Age.');
+    return;
   }
+
+  setBookingLoading(true);
+  try {
+    const res = await fetch(`${API}/api/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rideId: id,
+        userId: user.uid,
+        userEmail: user.email,
+        userName: profile.name,
+        userPhone: profile.phone,
+        userAge: profile.age,
+        userGender: profile.gender,
+      }),
+    });
+
+    const data = await res.json(); // Parse response
+
+    if (res.ok) {
+      // Success
+      setUserHasBooked(true);
+      setBookingSuccess(true);
+      setShowForm(false);
+      setRide((prev) => ({
+        ...prev,
+        seatsAvailable: prev.seatsAvailable - 1,
+      }));
+    } else {
+      // Show backend error (e.g., "No seats left")
+      alert(data.error || 'Booking failed. Please try again.');
+    }
+  } catch (err) {
+    console.error('Booking error:', err);
+    alert('Network error. Check console for details.');
+  } finally {
+    setBookingLoading(false);
+  }
+};
 
   if (loading) return <p className="text-center mt-10 text-purple-300">Loading...</p>
   if (error) return <p className="text-center mt-10 text-red-400">Error: {error}</p>
