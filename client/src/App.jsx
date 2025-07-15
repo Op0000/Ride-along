@@ -71,7 +71,9 @@ function App() {
   return (
     <div>
       <nav className="p-4 bg-blue-600 text-white flex justify-between items-center">
-        <Link to="/" className="font-bold text-xl">Ride Along</Link>
+        <Link to="/">
+  <img src="/logo.png" alt="Ride Along Logo" className="h-10" />
+</Link>
         <div className="flex items-center gap-4 relative" ref={dropdownRef}>
           <Link to="/post" className="hover:underline">Post Ride</Link>
           <Link to="/search" className="hover:underline">Search</Link>
