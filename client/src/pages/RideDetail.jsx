@@ -21,7 +21,7 @@ export default function RideDetail() {
 
   const auth = getAuth()
   const user = auth.currentUser
-  const API = 'https://ride-along-api.onrender.com'
+  const API = import.meta.env.VITE_API_URL || 'https://ride-along-api.onrender.com'
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,7 +40,7 @@ export default function RideDetail() {
           ])
           
           const bookings = await bookingsRes.json()
-          setUserHasBooked(bookings.some(b => b.rideId === id))
+          setUserHasBooked(bookings.some(b => b.rideId._id === id))
           
           if (profileRes.ok) {
             const profileData = await profileRes.json()
@@ -61,7 +61,6 @@ export default function RideDetail() {
   }, [id, user])
 
   const handleBooking = async () => {
-    // Validate all required fields
     if (!user) {
       alert('Please login to book a ride')
       return
@@ -69,14 +68,14 @@ export default function RideDetail() {
 
     const requiredFields = ['name', 'phone', 'age']
     const missingFields = requiredFields.filter(field => !profile[field])
-    
+
     if (missingFields.length > 0) {
       alert(`Please fill: ${missingFields.join(', ')}`)
       return
     }
 
     setBookingLoading(true)
-    
+
     try {
       const bookingData = {
         rideId: id,
@@ -85,11 +84,8 @@ export default function RideDetail() {
         userName: profile.name,
         userPhone: profile.phone,
         userAge: profile.age,
-        userGender: profile.gender,
-        _debug: new Date().toISOString()
+        userGender: profile.gender
       }
-
-      console.log('Submitting booking:', bookingData)
 
       const res = await fetch(`${API}/api/bookings`, {
         method: 'POST',
@@ -101,23 +97,16 @@ export default function RideDetail() {
       })
 
       const data = await res.json()
-      console.log('Booking response:', data)
 
       if (!res.ok) {
         throw new Error(data.error || 'Booking failed')
       }
 
-      // Update UI on success
       setUserHasBooked(true)
       setBookingSuccess(true)
       setShowForm(false)
-      setRide(prev => ({
-        ...prev,
-        seatsAvailable: prev.seatsAvailable - 1
-      }))
-      
+      setRide(prev => ({ ...prev, seatsAvailable: prev.seatsAvailable - 1 }))
     } catch (err) {
-      console.error('Booking error:', err)
       alert(`Booking failed: ${err.message}`)
     } finally {
       setBookingLoading(false)
@@ -133,8 +122,26 @@ export default function RideDetail() {
 
       {ride && (
         <div className="bg-zinc-800 rounded-xl p-6 shadow-lg space-y-4 text-lg max-w-xl mx-auto">
-          {/* Ride details remain the same */}
-          {/* ... */}
+          <div><strong>From:</strong> {ride.from}</div>
+          <div><strong>To:</strong> {ride.to}</div>
+          {ride.via?.length > 0 && (
+            <div><strong>Via:</strong> {ride.via.join(', ')}</div>
+          )}
+          <div><strong>Price:</strong> ₹{ride.price}</div>
+          <div><strong>Seats Available:</strong> {ride.seatsAvailable}</div>
+          <div><strong>Departure:</strong> {new Date(ride.departureTime).toLocaleString()}</div>
+          <div><strong>Driver Name:</strong> {ride.driverName}</div>
+
+          {userHasBooked ? (
+            <>
+              <div><strong>Driver Contact:</strong> {ride.driverContact}</div>
+              <div><strong>Vehicle Number:</strong> {ride.vehicleNumber}</div>
+            </>
+          ) : (
+            <div className="text-yellow-400 text-sm">
+              🚫 Book this ride to unlock full driver contact and vehicle details.
+            </div>
+          )}
 
           {showForm ? (
             <div className="mt-4 bg-zinc-700 p-4 rounded-lg space-y-3">
@@ -184,4 +191,5 @@ export default function RideDetail() {
       )}
     </div>
   )
-}
+        }
+                
