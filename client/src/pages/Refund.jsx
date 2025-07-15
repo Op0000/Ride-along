@@ -16,7 +16,7 @@ export default function RefundAndContact() {
         <div>
           <h2 className="font-semibold text-lg text-purple-300">Contact Us</h2>
           <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>For account issues, bug reports, or questions, email: <span className="text-blue-400">ridealong.support@gmail.com</span></li>
+            <li>For account issues, bug reports, or questions, email: <span className="text-blue-400">help.trenddash@gmail.com</span></li>
             <li>For account deletion requests, mention your registered email and UID.</li>
             <li>We typically respond within <strong>48 hours</strong>.</li>
           </ul>
