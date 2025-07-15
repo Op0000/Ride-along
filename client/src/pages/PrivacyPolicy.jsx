@@ -27,8 +27,6 @@ We don’t sell or trade your data. We may share it:
 
 5. Security:
 We use secure encryption, Firebase Authentication, and protected servers to keep your data safe.
-
-Contact: ridealong.support@example.com
       </p>
     </div>
   )
