@@ -17,8 +17,8 @@ import Profile from './pages/Profile.jsx'
 
 // ✅ Import your legal pages
 import Terms from './pages/Terms.jsx'
-import Privacy from './pages/PrivacyPolicy.jsx'
-
+import Privacy from './pages/Privacy.jsx'
+import Refund from './pages/Refund.jsx'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -113,7 +113,7 @@ function App() {
                     onClick={() => setDropdownOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-blue-100 transition"
                   >
-                    💸 Refund Policy
+                    💸 Refund Policy & Contact
                   </Link>
                   <hr className="my-1" />
                   <button
@@ -146,6 +146,7 @@ function App() {
         {/* ✅ Legal Routes */}
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/refund" element={<Refund />} />
       </Routes>
     </div>
   )
