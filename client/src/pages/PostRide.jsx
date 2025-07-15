@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { getAuth } from 'firebase/auth'
 
 export default function PostRide({ onPost }) {
   const [formData, setFormData] = useState({
