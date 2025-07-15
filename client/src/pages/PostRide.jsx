@@ -23,53 +23,53 @@ export default function PostRide({ onPost }) {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    // ✅ Sanitize and transform data
-    const payload = {
-      ...formData,
-      price: Number(formData.price),
-      seatsAvailable: Number(formData.seatsAvailable),
-      via: formData.via ? formData.via.split(',').map(item => item.trim()) : []
-    }
+  const payload = {
+    ...formData,
+    price: Number(formData.price),
+    seatsAvailable: Number(formData.seatsAvailable),
+    via: formData.via ? formData.via.split(',').map(item => item.trim()) : []
+  }
 
-    try {
-      const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+  console.log('🚀 Submitting payload:', payload)
+
+  try {
+    const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    console.log('📡 Fetch complete, status:', res.status)
+
+    const result = await res.json()
+    console.log('📦 Response JSON:', result)
+
+    if (res.ok) {
+      alert('✅ Ride posted successfully!')
+      onPost?.()
+      setFormData({
+        from: '',
+        to: '',
+        via: '',
+        price: '',
+        seatsAvailable: '',
+        driverName: '',
+        driverContact: '',
+        vehicleNumber: '',
+        departureTime: ''
       })
-
-      const result = await res.json()
-      console.log('PostRide response status:', res.status)
-      console.log('PostRide payload:', result)
-
-      if (res.ok) {
-        console.log('✅ Ride posted:', result)
-        onPost?.()
-        setFormData({
-          from: '',
-          to: '',
-          via: '',
-          price: '',
-          seatsAvailable: '',
-          driverName: '',
-          driverContact: '',
-          vehicleNumber: '',
-          departureTime: ''
-        })
-      } else {
-        console.error('❌ PostRide failed:', result?.error || 'Unknown error')
-        alert('Failed to post ride. Please try again.')
-      }
-
-    } catch (err) {
-      console.error('❌ Network error:', err)
-      alert('Something went wrong. Please check your connection.')
+    } else {
+      alert(`❌ Failed to post ride: ${result.error || 'Unknown error'}`)
     }
+  } catch (err) {
+    console.error('❌ Caught error:', err)
+    alert(`🚨 Error occurred: ${err.message}`)
+  }
 
-    setLoading(false)
+  setLoading(false)
   }
 
   return (
