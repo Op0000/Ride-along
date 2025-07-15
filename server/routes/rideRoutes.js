@@ -7,11 +7,7 @@ const router = express.Router()
 // ✅ POST /api/rides — Create a new ride (protected route)
 router.post('/', verifyFirebaseToken, async (req, res) => {
   try {
-    const user = req.user
-    console.log('[POST RIDE]', {
-      user,
-      body: req.body
-    })
+    const user = req.user  // Decoded from Firebase token
 
     const ride = new Ride({
       ...req.body,
@@ -20,13 +16,12 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
     })
 
     await ride.save()
-    console.log('[POST RIDE SUCCESS]', ride)
     res.status(201).json({ message: 'Ride posted!', ride })
   } catch (err) {
-    console.error('[POST RIDE ERROR]', err)
     res.status(400).json({ error: err.message })
   }
 })
+
 // ✅ GET /api/rides — Search rides with directional filtering
 router.get('/', async (req, res) => {
   try {
@@ -66,5 +61,5 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
-
+console.log('[POST RIDE REQUEST]', req.body);
 export default router
