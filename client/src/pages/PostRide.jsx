@@ -25,9 +25,6 @@ export default function PostRide({ onPost }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    console.log('PostRide response status:', res.status);
-const result = await res.json();
-console.log('PostRide payload:', result);
 
     // ✅ Sanitize and transform data
     const payload = {
@@ -44,10 +41,13 @@ console.log('PostRide payload:', result);
         body: JSON.stringify(payload),
       })
 
+      const result = await res.json()
+      console.log('PostRide response status:', res.status)
+      console.log('PostRide payload:', result)
+
       if (res.ok) {
-        const result = await res.json()
         console.log('✅ Ride posted:', result)
-        onPost()
+        onPost?.()
         setFormData({
           from: '',
           to: '',
@@ -60,11 +60,13 @@ console.log('PostRide payload:', result);
           departureTime: ''
         })
       } else {
-        const error = await res.json()
-        console.error('❌ Failed:', error)
+        console.error('❌ PostRide failed:', result?.error || 'Unknown error')
+        alert('Failed to post ride. Please try again.')
       }
+
     } catch (err) {
-      console.error('❌ Error:', err)
+      console.error('❌ Network error:', err)
+      alert('Something went wrong. Please check your connection.')
     }
 
     setLoading(false)
