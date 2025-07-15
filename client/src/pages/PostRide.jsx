@@ -33,19 +33,28 @@ export default function PostRide({ onPost }) {
     via: formData.via ? formData.via.split(',').map(item => item.trim()) : []
   }
 
-  console.log('🚀 Submitting payload:', payload)
-
   try {
+    const user = getAuth().currentUser
+    if (!user) {
+      alert('Please login to post a ride')
+      setLoading(false)
+      return
+    }
+
+    const token = await user.getIdToken()
+
     const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // 👈 REQUIRED!
+      },
       body: JSON.stringify(payload),
     })
 
-    console.log('📡 Fetch complete, status:', res.status)
-
     const result = await res.json()
-    console.log('📦 Response JSON:', result)
+    console.log('PostRide response status:', res.status)
+    console.log('PostRide payload:', result)
 
     if (res.ok) {
       alert('✅ Ride posted successfully!')
@@ -64,6 +73,7 @@ export default function PostRide({ onPost }) {
     } else {
       alert(`❌ Failed to post ride: ${result.error || 'Unknown error'}`)
     }
+
   } catch (err) {
     console.error('❌ Caught error:', err)
     alert(`🚨 Error occurred: ${err.message}`)
