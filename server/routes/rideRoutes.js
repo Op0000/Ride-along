@@ -61,5 +61,5 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
-console.log('[POST RIDE REQUEST]', req.body);
+
 export default router
