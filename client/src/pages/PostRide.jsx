@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { getAuth } from 'firebase/auth'
-import AutocompleteInput from '../components/AutocompleteInput' // 👈 import it
+import AutocompleteInput from '../components/AutocompleteInput'
 
 export default function PostRide({ onPost }) {
   const [formData, setFormData] = useState({
@@ -24,10 +24,10 @@ export default function PostRide({ onPost }) {
     })
   }
 
-  const handleAutocomplete = (field, place) => {
+  const handleAutocompleteChange = (name, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: place.display_name
+      [name]: value
     }))
   }
 
@@ -94,18 +94,17 @@ export default function PostRide({ onPost }) {
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <AutocompleteInput
-        label="From"
-        placeholder="Start location"
+        name="from"
+        placeholder="From"
         value={formData.from}
-        onChange={(place) => handleAutocomplete('from', place)}
+        onChange={handleAutocompleteChange}
       />
       <AutocompleteInput
-        label="To"
-        placeholder="End location"
+        name="to"
+        placeholder="To"
         value={formData.to}
-        onChange={(place) => handleAutocomplete('to', place)}
+        onChange={handleAutocompleteChange}
       />
-
       <input
         type="text"
         name="via"
@@ -130,4 +129,4 @@ export default function PostRide({ onPost }) {
       </button>
     </form>
   )
-}
+      }
