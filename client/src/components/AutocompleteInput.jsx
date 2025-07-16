@@ -19,7 +19,7 @@ export default function AutocompleteInput({ label, value, onChange, placeholder 
   const handleSelect = (place) => {
     setQuery(place.display_name)
     onChange(place)
-    setResults([])
+    setSuggestions([])
   }
 
   return (
