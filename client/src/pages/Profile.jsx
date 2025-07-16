@@ -15,6 +15,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
+  const [rides, setRides] = useState([]) // 👈 New state for user's posted rides
 
   const API_BASE = 'https://ride-along-api.onrender.com/api/users'
 
@@ -42,7 +43,21 @@ export default function Profile() {
       }
     }
 
+    const fetchRides = async () => {
+      try {
+        const token = await user.getIdToken()
+        const res = await fetch('https://ride-along-api.onrender.com/api/rides/mine', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        setRides(data)
+      } catch (err) {
+        console.error('Fetching rides failed:', err)
+      }
+    }
+
     fetchUser()
+    fetchRides()
   }, [user])
 
   const validate = () => {
@@ -78,6 +93,23 @@ export default function Profile() {
       }
     } catch (err) {
       console.error('Save failed:', err)
+    }
+  }
+
+  const handleCancelRide = async (rideId) => {
+    if (!confirm('Cancel this ride?')) return
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch(`https://ride-along-api.onrender.com/api/rides/${rideId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setRides(prev => prev.filter(r => r._id !== rideId))
+        alert('✅ Ride cancelled')
+      }
+    } catch (err) {
+      console.error('Cancel failed:', err)
     }
   }
 
@@ -151,6 +183,31 @@ export default function Profile() {
           </p>
         )}
       </div>
+
+      {/* Posted rides section */}
+      <div className="max-w-4xl mx-auto mt-10 p-4 sm:p-6 bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-700">
+        <h2 className="text-xl font-semibold text-purple-300 mb-4">🛣️ Your Posted Rides</h2>
+        {rides.length === 0 ? (
+          <p className="text-zinc-400">No rides posted yet.</p>
+        ) : (
+          <div className="grid gap-4">
+            {rides.map(ride => (
+              <div key={ride._id} className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
+                <p><strong>From:</strong> {ride.from}</p>
+                <p><strong>To:</strong> {ride.to}</p>
+                <p><strong>Date:</strong> {new Date(ride.departureTime).toLocaleString()}</p>
+                <p><strong>Seats:</strong> {ride.seatsAvailable}</p>
+                <button
+                  onClick={() => handleCancelRide(ride._id)}
+                  className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                >
+                  Cancel Ride
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
-  }
+        }
