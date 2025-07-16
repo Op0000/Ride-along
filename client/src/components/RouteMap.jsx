@@ -1,43 +1,51 @@
 import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 export default function RouteMap({ from, to, via = [] }) {
   const [routeCoords, setRouteCoords] = useState([])
+  const [center, setCenter] = useState([20.5937, 78.9629]) // Default center (India)
 
-  const coords = {
-    delhi: [28.6139, 77.2090],
-    jaipur: [26.9124, 75.7873],
-    agra: [27.1767, 78.0081],
-    mumbai: [19.0760, 72.8777],
-    pune: [18.5204, 73.8567]
+  const getLatLng = async (place) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}`
+      )
+      const data = await res.json()
+      if (data.length === 0) return null
+      return [parseFloat(data[0].lat), parseFloat(data[0].lon)] // [lat, lng]
+    } catch (err) {
+      console.error('Geocoding error:', err)
+      return null
+    }
   }
 
-  const getLatLng = (city) => coords[city.toLowerCase()] || null
-
   useEffect(() => {
-    const routePoints = [from, ...via, to]
-    const points = routePoints.map(getLatLng).filter(Boolean)
+    const fetchRoute = async () => {
+      const routePoints = [from, ...via, to]
+      const coords = await Promise.all(routePoints.map(getLatLng))
+      const validCoords = coords.filter(Boolean)
 
-    if (points.length < 2) return
+      if (validCoords.length < 2) return
 
-    const query = points.map(p => `${p[1]},${p[0]}`).join(';') // lng,lat
+      setCenter(validCoords[0]) // Use "from" location as center
 
-    fetch(`https://router.project-osrm.org/route/v1/driving/${query}?overview=full&geometries=geojson`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.routes?.[0]?.geometry?.coordinates) {
-          const coords = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])
-          setRouteCoords(coords)
-        }
-      })
-      .catch(err => console.error('Routing error:', err))
+      const query = validCoords.map(p => `${p[1]},${p[0]}`).join(';') // lng,lat
+      const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${query}?overview=full&geometries=geojson`)
+      const data = await res.json()
+
+      if (data.routes?.[0]?.geometry?.coordinates) {
+        const route = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng])
+        setRouteCoords(route)
+      }
+    }
+
+    fetchRoute()
   }, [from, to, via])
 
   return (
     <div className="h-64 mt-6 rounded-lg overflow-hidden">
-      <MapContainer center={getLatLng(from)} zoom={6} style={{ height: '100%', width: '100%' }}>
+      <MapContainer center={center} zoom={6} style={{ height: '100%', width: '100%' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {routeCoords.length > 0 && (
           <Polyline positions={routeCoords} color="purple" weight={5} />
