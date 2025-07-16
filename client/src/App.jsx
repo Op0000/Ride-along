@@ -8,6 +8,7 @@ import {
   signInWithPopup
 } from 'firebase/auth'
 import './firebase.js'
+import 'leaflet/dist/leaflet.css';
 
 import Home from './pages/Home.jsx'
 import PostRide from './pages/PostRide.jsx'
