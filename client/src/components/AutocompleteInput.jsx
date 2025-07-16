@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function AutocompleteInput({ value, onChange, placeholder }) {
+export default function AutocompleteInput({ name, value, onChange, placeholder }) {
   const [query, setQuery] = useState(value || '')
   const [suggestions, setSuggestions] = useState([])
 
@@ -22,9 +22,9 @@ export default function AutocompleteInput({ value, onChange, placeholder }) {
 
   const handleSelect = (place) => {
     const displayName = place.display_name
-    setQuery(displayName)         // ✅ update input
-    setSuggestions([])            // ✅ close dropdown
-    onChange(displayName)         // ✅ pass selected back
+    setQuery(displayName)
+    setSuggestions([])
+    onChange(name, displayName) // 🔥 Send field name + value to parent
   }
 
   return (
@@ -32,8 +32,9 @@ export default function AutocompleteInput({ value, onChange, placeholder }) {
       <input
         value={query}
         onChange={(e) => {
-          setQuery(e.target.value)
-          onChange(e.target.value)
+          const val = e.target.value
+          setQuery(val)
+          onChange(name, val) // 🔥 Send field name + value on type
         }}
         placeholder={placeholder}
         className="input"
