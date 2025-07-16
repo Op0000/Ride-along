@@ -89,8 +89,9 @@ export default function RideDetail() {
           </div>
         )}
 
-        <RouteMap from={ride.from} to={ride.to} via={ride.via} />
-
+       <div className="mt-8">
+  <RouteMap from={ride.from} to={ride.to} via={ride.via} />
+       </div>
         <div className="text-sm text-zinc-400">
           <strong>Posted:</strong> {new Date(ride.createdAt).toLocaleString()}
         </div>
