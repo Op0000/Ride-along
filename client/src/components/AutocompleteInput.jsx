@@ -1,50 +1,53 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function AutocompleteInput({ label, value, onChange, placeholder }) {
+export default function AutocompleteInput({ value, onChange, placeholder }) {
   const [query, setQuery] = useState(value || '')
-  const [results, setResults] = useState([])
+  const [suggestions, setSuggestions] = useState([])
 
   useEffect(() => {
-    if (!query) return
-    const delayDebounce = setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&accept-language=en`)
-        .then(res => res.json())
-        .then(data => setResults(data.slice(0, 5)))
-        .catch(() => setResults([]))
-    }, 500)
+    if (query.length < 2) return setSuggestions([])
 
-    return () => clearTimeout(delayDebounce)
+    const controller = new AbortController()
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&accept-language=en`, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'RideAlong/1.0' }
+    })
+      .then(res => res.json())
+      .then(data => setSuggestions(data))
+      .catch(err => console.log(err))
+
+    return () => controller.abort()
   }, [query])
 
   const handleSelect = (place) => {
-    setQuery(place.display_name)
-    onChange(place)
-    setSuggestions([])
+    const displayName = place.display_name
+    setQuery(displayName)         // ✅ update input
+    setSuggestions([])            // ✅ close dropdown
+    onChange(displayName)         // ✅ pass selected back
   }
 
   return (
     <div className="relative">
-      <label className="block text-sm text-white mb-1">{label}</label>
       <input
-        type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 rounded bg-zinc-700 text-white"
+        className="input"
       />
-      {results.length > 0 && (
-        <ul className="absolute z-50 bg-white text-black w-full rounded shadow mt-1 max-h-40 overflow-y-auto">
-          {results.map((place, i) => (
-            <li
+      {suggestions.length > 0 && (
+        <div className="absolute z-10 bg-white text-black shadow-md rounded w-full max-h-48 overflow-y-auto">
+          {suggestions.map((sug, i) => (
+            <div
               key={i}
-              className="px-4 py-2 hover:bg-purple-100 cursor-pointer text-sm"
-              onClick={() => handleSelect(place)}
+              onClick={() => handleSelect(sug)}
+              className="px-4 py-2 hover:bg-purple-100 cursor-pointer"
             >
-              {place.display_name}
-            </li>
+              {sug.display_name}
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
-              }
+}
