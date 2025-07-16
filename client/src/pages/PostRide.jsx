@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getAuth } from 'firebase/auth'
+import AutocompleteInput from '../components/AutocompleteInput' // 👈 import it
 
 export default function PostRide({ onPost }) {
   const [formData, setFormData] = useState({
@@ -23,71 +24,96 @@ export default function PostRide({ onPost }) {
     })
   }
 
+  const handleAutocomplete = (field, place) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: place.display_name
+    }))
+  }
+
   const handleSubmit = async (e) => {
-  e.preventDefault()
-  setLoading(true)
+    e.preventDefault()
+    setLoading(true)
 
-  const payload = {
-    ...formData,
-    price: Number(formData.price),
-    seatsAvailable: Number(formData.seatsAvailable),
-    via: formData.via ? formData.via.split(',').map(item => item.trim()) : []
-  }
-
-  try {
-    const user = getAuth().currentUser
-    if (!user) {
-      alert('Please login to post a ride')
-      setLoading(false)
-      return
+    const payload = {
+      ...formData,
+      price: Number(formData.price),
+      seatsAvailable: Number(formData.seatsAvailable),
+      via: formData.via ? formData.via.split(',').map(item => item.trim()) : []
     }
 
-    const token = await user.getIdToken()
+    try {
+      const user = getAuth().currentUser
+      if (!user) {
+        alert('Please login to post a ride')
+        setLoading(false)
+        return
+      }
 
-    const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  // 👈 REQUIRED!
-      },
-      body: JSON.stringify(payload),
-    })
+      const token = await user.getIdToken()
 
-    const result = await res.json()
-    console.log('PostRide response status:', res.status)
-    console.log('PostRide payload:', result)
-
-    if (res.ok) {
-      alert('✅ Ride posted successfully!')
-      onPost?.()
-      setFormData({
-        from: '',
-        to: '',
-        via: '',
-        price: '',
-        seatsAvailable: '',
-        driverName: '',
-        driverContact: '',
-        vehicleNumber: '',
-        departureTime: ''
+      const res = await fetch('https://ride-along-api.onrender.com/api/rides', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
       })
-    } else {
-      alert(`❌ Failed to post ride: ${result.error || 'Unknown error'}`)
+
+      const result = await res.json()
+      console.log('PostRide response status:', res.status)
+      console.log('PostRide payload:', result)
+
+      if (res.ok) {
+        alert('✅ Ride posted successfully!')
+        onPost?.()
+        setFormData({
+          from: '',
+          to: '',
+          via: '',
+          price: '',
+          seatsAvailable: '',
+          driverName: '',
+          driverContact: '',
+          vehicleNumber: '',
+          departureTime: ''
+        })
+      } else {
+        alert(`❌ Failed to post ride: ${result.error || 'Unknown error'}`)
+      }
+
+    } catch (err) {
+      console.error('❌ Caught error:', err)
+      alert(`🚨 Error occurred: ${err.message}`)
     }
 
-  } catch (err) {
-    console.error('❌ Caught error:', err)
-    alert(`🚨 Error occurred: ${err.message}`)
-  }
-
-  setLoading(false)
+    setLoading(false)
   }
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <input type="text" name="from" value={formData.from} onChange={handleChange} placeholder="From" required className="input" />
-      <input type="text" name="to" value={formData.to} onChange={handleChange} placeholder="To" required className="input" />
-      <input type="text" name="via" value={formData.via} onChange={handleChange} placeholder="Via (comma-separated)" className="input" />
+      <AutocompleteInput
+        label="From"
+        placeholder="Start location"
+        value={formData.from}
+        onChange={(place) => handleAutocomplete('from', place)}
+      />
+      <AutocompleteInput
+        label="To"
+        placeholder="End location"
+        value={formData.to}
+        onChange={(place) => handleAutocomplete('to', place)}
+      />
+
+      <input
+        type="text"
+        name="via"
+        value={formData.via}
+        onChange={handleChange}
+        placeholder="Via (comma-separated)"
+        className="input"
+      />
       <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="Price (₹)" required className="input" />
       <input type="number" name="seatsAvailable" value={formData.seatsAvailable} onChange={handleChange} placeholder="Seats Available" required className="input" />
       <input type="text" name="driverName" value={formData.driverName} onChange={handleChange} placeholder="Driver's Name" required className="input" />
