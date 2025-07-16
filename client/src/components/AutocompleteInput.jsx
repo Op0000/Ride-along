@@ -7,7 +7,7 @@ export default function AutocompleteInput({ label, value, onChange, placeholder 
   useEffect(() => {
     if (!query) return
     const delayDebounce = setTimeout(() => {
-      fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json`)
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&accept-language=en`)
         .then(res => res.json())
         .then(data => setResults(data.slice(0, 5)))
         .catch(() => setResults([]))
