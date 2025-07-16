@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { getAuth } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 export default function Profile() {
   const auth = getAuth()
-  const user = auth.currentUser
+  const [user, setUser] = useState(null)
   const [details, setDetails] = useState({
     uid: '',
     name: '',
@@ -15,50 +15,48 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
-  const [rides, setRides] = useState([]) // 👈 New state for user's posted rides
+  const [rides, setRides] = useState([])
 
   const API_BASE = 'https://ride-along-api.onrender.com/api/users'
 
   useEffect(() => {
-    if (!user) return
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser)
 
-    const fetchUser = async () => {
+      if (!currentUser) {
+        setLoading(false)
+        return
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/${user.uid}`)
+        const res = await fetch(`${API_BASE}/${currentUser.uid}`)
         if (res.ok) {
           const data = await res.json()
-          setDetails({ ...data, uid: user.uid })
+          setDetails({ ...data, uid: currentUser.uid })
         } else {
           setDetails(prev => ({
             ...prev,
-            uid: user.uid,
-            email: user.email || '',
-            name: user.displayName || ''
+            uid: currentUser.uid,
+            email: currentUser.email || '',
+            name: currentUser.displayName || ''
           }))
         }
+
+        const token = await currentUser.getIdToken()
+        const rideRes = await fetch('https://ride-along-api.onrender.com/api/rides/mine', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const rideData = await rideRes.json()
+        setRides(rideData)
       } catch (err) {
-        console.error('Fetch failed:', err)
+        console.error('Fetch error:', err)
       } finally {
         setLoading(false)
       }
-    }
+    })
 
-    const fetchRides = async () => {
-      try {
-        const token = await user.getIdToken()
-        const res = await fetch('https://ride-along-api.onrender.com/api/rides/mine', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        const data = await res.json()
-        setRides(data)
-      } catch (err) {
-        console.error('Fetching rides failed:', err)
-      }
-    }
-
-    fetchUser()
-    fetchRides()
-  }, [user])
+    return () => unsubscribe()
+  }, [])
 
   const validate = () => {
     const errs = {}
@@ -114,13 +112,13 @@ export default function Profile() {
   }
 
   if (loading) return <div className="text-center mt-10 text-white">Loading...</div>
+  if (!user) return <div className="text-center mt-10 text-red-400">Please log in to view your profile.</div>
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-4 sm:p-6">
       <h1 className="text-3xl font-bold text-purple-400 mb-6 text-center">Your Profile</h1>
 
       <div className="bg-zinc-800 p-4 sm:p-6 rounded-2xl max-w-md mx-auto space-y-4 shadow-2xl border border-zinc-700">
-        {/* UID - non-editable */}
         <div>
           <label className="block text-sm mb-1 text-purple-300">UID</label>
           <input
@@ -132,7 +130,6 @@ export default function Profile() {
           />
         </div>
 
-        {/* Editable fields */}
         {['name', 'age', 'phone', 'email'].map((field) => (
           <div key={field}>
             <label className="block text-sm mb-1 capitalize text-purple-300">{field}</label>
@@ -149,7 +146,6 @@ export default function Profile() {
           </div>
         ))}
 
-        {/* Gender dropdown */}
         <div>
           <label className="block text-sm mb-1 text-purple-300">Gender</label>
           <select
@@ -168,7 +164,6 @@ export default function Profile() {
           {errors.gender && <p className="text-red-400 text-xs mt-1">{errors.gender}</p>}
         </div>
 
-        {/* Save button */}
         <button
           onClick={handleSave}
           className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition duration-200 ease-in-out"
@@ -176,7 +171,6 @@ export default function Profile() {
           Save Changes
         </button>
 
-        {/* Save confirmation */}
         {saved && (
           <p className="text-green-400 text-center animate-pulse mt-2">
             ✅ Profile updated successfully
@@ -184,7 +178,7 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Posted rides section */}
+      {/* Posted rides */}
       <div className="max-w-4xl mx-auto mt-10 p-4 sm:p-6 bg-zinc-800 rounded-2xl shadow-2xl border border-zinc-700">
         <h2 className="text-xl font-semibold text-purple-300 mb-4">🛣️ Your Posted Rides</h2>
         {rides.length === 0 ? (
@@ -210,4 +204,4 @@ export default function Profile() {
       </div>
     </div>
   )
-        }
+          }
