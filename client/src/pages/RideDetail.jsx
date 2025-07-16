@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import RouteMap from '../components/RouteMap' // Adjust path as needed
 
 export default function RideDetail() {
   const { id } = useParams()
@@ -44,6 +45,7 @@ export default function RideDetail() {
         <div><strong>Driver Name:</strong> {ride.driverName}</div>
         <div><strong>Driver Contact:</strong> {ride.driverContact}</div>
         <div><strong>Vehicle Number:</strong> {ride.vehicleNumber}</div>
+        <RouteMap from={ride.from} to={ride.to} via={ride.via} />
         <div className="text-sm text-zinc-400"><strong>Posted:</strong> {new Date(ride.createdAt).toLocaleString()}</div>
       </div>
     </div>
