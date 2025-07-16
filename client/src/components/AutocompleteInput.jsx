@@ -31,7 +31,10 @@ export default function AutocompleteInput({ value, onChange, placeholder }) {
     <div className="relative">
       <input
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value)
+          onChange(e.target.value)
+        }}
         placeholder={placeholder}
         className="input"
       />
