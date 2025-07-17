@@ -30,8 +30,17 @@ export default function BookingForm({ rideId }) {
     setLoading(true)
     setError('')
 
+    const userId = localStorage.getItem('uid')
+    const token = localStorage.getItem('token')
+
     if (!captchaToken) {
       setError('Please verify you are not a robot.')
+      setLoading(false)
+      return
+    }
+
+    if (!userId || !token) {
+      setError('You must be logged in to book a ride.')
       setLoading(false)
       return
     }
@@ -41,9 +50,18 @@ export default function BookingForm({ rideId }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ rideId, ...userData, captcha: captchaToken }),
+        body: JSON.stringify({
+          rideId,
+          userId,
+          userEmail: userData.email,
+          userName: userData.name,
+          userPhone: userData.phone,
+          userAge: userData.age,
+          userGender: userData.gender,
+          captcha: captchaToken
+        }),
       })
 
       const data = await res.json()
@@ -54,8 +72,8 @@ export default function BookingForm({ rideId }) {
         setError(data.message || 'Booking failed!')
       }
     } catch (err) {
-      setError('Network error. Please try again.')
       console.error('Booking error:', err)
+      setError('Network error. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -68,7 +86,11 @@ export default function BookingForm({ rideId }) {
     >
       <h2 className="text-2xl font-bold text-center">Book This Ride</h2>
 
-      {error && <p className="text-red-400 text-sm bg-red-100 p-2 rounded text-center">{error}</p>}
+      {error && (
+        <p className="text-red-400 text-sm bg-red-100 p-2 rounded text-center">
+          {error}
+        </p>
+      )}
 
       <input
         name="name"
@@ -126,7 +148,6 @@ export default function BookingForm({ rideId }) {
         required
       />
 
-      {/* 🔐 Google reCAPTCHA */}
       <div className="flex justify-center">
         <ReCAPTCHA
           sitekey="6LdlI4UrAAAAAFDXPMbQCK7lo79hzsr1AkB_Acyb"
@@ -168,5 +189,5 @@ export default function BookingForm({ rideId }) {
 }
 
 BookingForm.propTypes = {
-  rideId: PropTypes.string.isRequired,
-          }
+  rideId: PropTypes.string.isRequired
+        }
