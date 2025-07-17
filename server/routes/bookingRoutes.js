@@ -13,26 +13,50 @@ router.post('/', async (req, res) => {
     userName,
     userPhone,
     userAge,
-    userGender
+    userGender,
+    seatsBooked = 1
   } = req.body
 
   // 🔥 Add validation for required fields
-  if (!userId || !userEmail) {
-    return res.status(400).json({ 
-      error: 'Validation failed: userId and userEmail are required.' 
+  if (!rideId || !userId || !userEmail) {
+    return res.status(400).json({
+      error: 'Validation failed: rideId, userId and userEmail are required.'
+    })
+  }
+
+  // Validate seatsBooked is a positive number
+  if (seatsBooked <= 0 || !Number.isInteger(seatsBooked)) {
+    return res.status(400).json({
+      error: 'seatsBooked must be a positive integer.'
     })
   }
 
   try {
+    // Check if ride exists and has enough seats
     const ride = await Ride.findById(rideId)
-    if (!ride || ride.seatsAvailable < 1) {
-      return res.status(400).json({ error: 'Ride not found or no seats left' })
+    if (!ride) {
+      return res.status(404).json({ error: 'Ride not found' })
+    }
+
+    if (ride.seatsAvailable < seatsBooked) {
+      return res.status(400).json({ 
+        error: `Not enough seats available. Only ${ride.seatsAvailable} seats left.` 
+      })
+    }
+
+    // Check if user already booked this ride
+    const existingBooking = await Booking.findOne({ rideId, userId })
+    if (existingBooking) {
+      return res.status(400).json({ 
+        error: 'You have already booked this ride.' 
+      })
     }
 
     // Update seat count
-    ride.seatsAvailable -= 1
+    ride.seatsAvailable -= seatsBooked
     await ride.save()
 
+    // Create booking
     const booking = new Booking({
       rideId,
       userId,
@@ -41,17 +65,21 @@ router.post('/', async (req, res) => {
       userPhone,
       userAge,
       userGender,
-      seatsBooked: 1
+      seatsBooked
     })
 
     await booking.save()
 
-    res.status(201).json({ message: 'Booking successful', booking })
+    res.status(201).json({ 
+      message: 'Booking successful', 
+      booking,
+      remainingSeats: ride.seatsAvailable
+    })
+
   } catch (err) {
     console.error('[BOOKING ERROR]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'Internal server error. Please try again.' })
   }
 })
 
-// ... (keep the existing GET route)
 export default router
