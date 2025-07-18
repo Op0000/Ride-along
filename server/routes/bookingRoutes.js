@@ -47,16 +47,16 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
     }
 
     if (ride.seatsAvailable < seatsBooked) {
-      return res.status(400).json({
-        error: `Not enough seats available. Only ${ride.seatsAvailable} seats left.`
+      return res.status(400).json({ 
+        error: `Not enough seats available. Only ${ride.seatsAvailable} seats left.` 
       })
     }
 
     // Check if user already booked this ride
     const existingBooking = await Booking.findOne({ rideId, userId })
     if (existingBooking) {
-      return res.status(400).json({
-        error: 'You have already booked this ride.'
+      return res.status(400).json({ 
+        error: 'You have already booked this ride.' 
       })
     }
 
@@ -78,8 +78,8 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
 
     await booking.save()
 
-    res.status(201).json({
-      message: 'Booking successful',
+    res.status(201).json({ 
+      message: 'Booking successful', 
       booking,
       remainingSeats: ride.seatsAvailable
     })
@@ -91,4 +91,4 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
 })
 
 export default router
-  
+      
