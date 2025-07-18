@@ -9,8 +9,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser)
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          // Get the Firebase ID token
+          const token = await firebaseUser.getIdToken()
+          
+          // Store in localStorage for your booking system
+          localStorage.setItem('uid', firebaseUser.uid)
+          localStorage.setItem('token', token)
+          
+          setUser(firebaseUser)
+        } catch (error) {
+          console.error('Error getting ID token:', error)
+          setUser(firebaseUser)
+        }
+      } else {
+        // Clear localStorage when user logs out
+        localStorage.removeItem('uid')
+        localStorage.removeItem('token')
+        setUser(null)
+      }
       setLoading(false)
     })
 
@@ -25,3 +44,4 @@ export const AuthProvider = ({ children }) => {
 }
 
 export const useAuth = () => useContext(AuthContext)
+  
