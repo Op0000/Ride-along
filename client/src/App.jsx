@@ -30,7 +30,21 @@ function App() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        try {
+          // Get the Firebase ID token and store it
+          const token = await currentUser.getIdToken()
+          localStorage.setItem('uid', currentUser.uid)
+          localStorage.setItem('token', token)
+        } catch (error) {
+          console.error('Error getting ID token:', error)
+        }
+      } else {
+        // Clear localStorage when user logs out
+        localStorage.removeItem('uid')
+        localStorage.removeItem('token')
+      }
       setUser(currentUser)
       setLoading(false)
     })
@@ -51,7 +65,12 @@ function App() {
     try {
       const provider = new GoogleAuthProvider()
       provider.setCustomParameters({ prompt: 'select_account' })
-      await signInWithPopup(auth, provider)
+      const result = await signInWithPopup(auth, provider)
+      
+      // Get token and store it immediately after login
+      const token = await result.user.getIdToken()
+      localStorage.setItem('uid', result.user.uid)
+      localStorage.setItem('token', token)
     } catch (error) {
       console.error('Login failed:', error)
     }
@@ -60,6 +79,9 @@ function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth)
+      // Clear localStorage tokens
+      localStorage.removeItem('uid')
+      localStorage.removeItem('token')
       setDropdownOpen(false)
       navigate('/')
     } catch (error) {
@@ -157,3 +179,4 @@ function App() {
 }
 
 export default App
+                               
