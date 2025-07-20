@@ -2,19 +2,40 @@ import nodemailer from 'nodemailer'
 
 // Create reusable transporter object using SMTP transport
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER || 'ridealong.service@gmail.com',
       pass: process.env.EMAIL_PASSWORD || 'your-app-password'
-    }
+    },
+    debug: true, // Enable debug mode
+    logger: true // Enable logging
   })
+}
+
+// Test email configuration
+export const testEmailConfiguration = async () => {
+  try {
+    const transporter = createTransporter()
+    await transporter.verify()
+    console.log('✅ Email configuration is valid')
+    return true
+  } catch (error) {
+    console.error('❌ Email configuration error:', error)
+    return false
+  }
 }
 
 // Send booking confirmation email to passenger
 export const sendBookingConfirmation = async (bookingDetails) => {
   try {
+    console.log('📧 Attempting to send booking confirmation email...')
+    
     const transporter = createTransporter()
+    
+    // Verify transporter configuration
+    await transporter.verify()
+    console.log('✅ Email transporter verified successfully')
     
     const { 
       userEmail, 
@@ -24,6 +45,8 @@ export const sendBookingConfirmation = async (bookingDetails) => {
       ride,
       booking 
     } = bookingDetails
+
+    console.log('📧 Sending email to:', userEmail)
 
     const departureDateTime = new Date(ride.departureTime)
     const formattedDate = departureDateTime.toLocaleDateString('en-US', {
@@ -38,7 +61,7 @@ export const sendBookingConfirmation = async (bookingDetails) => {
     })
 
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'ridealong.service@gmail.com',
+      from: `"Ride Along" <${process.env.EMAIL_USER || 'ridealong.service@gmail.com'}>`,
       to: userEmail,
       subject: '🚗 Ride Booking Confirmation - Ride Along',
       html: `
@@ -90,11 +113,17 @@ export const sendBookingConfirmation = async (bookingDetails) => {
       `
     }
 
-    await transporter.sendMail(mailOptions)
-    console.log('Booking confirmation email sent to passenger:', userEmail)
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Booking confirmation email sent successfully to:', userEmail)
+    console.log('📧 Message ID:', result.messageId)
     return true
   } catch (error) {
-    console.error('Error sending booking confirmation email:', error)
+    console.error('❌ Error sending booking confirmation email:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response
+    })
     return false
   }
 }
@@ -102,7 +131,13 @@ export const sendBookingConfirmation = async (bookingDetails) => {
 // Send driver notification email about new passenger
 export const sendDriverNotification = async (bookingDetails) => {
   try {
+    console.log('📧 Attempting to send driver notification email...')
+    
     const transporter = createTransporter()
+    
+    // Verify transporter configuration
+    await transporter.verify()
+    console.log('✅ Email transporter verified for driver notification')
     
     const { 
       userEmail, 
@@ -114,6 +149,8 @@ export const sendDriverNotification = async (bookingDetails) => {
       ride,
       booking 
     } = bookingDetails
+
+    console.log('📧 Sending driver notification to:', ride.userEmail)
 
     const departureDateTime = new Date(ride.departureTime)
     const formattedDate = departureDateTime.toLocaleDateString('en-US', {
@@ -128,7 +165,7 @@ export const sendDriverNotification = async (bookingDetails) => {
     })
 
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'ridealong.service@gmail.com',
+      from: `"Ride Along" <${process.env.EMAIL_USER || 'ridealong.service@gmail.com'}>`,
       to: ride.userEmail, // Driver's email
       subject: '👥 New Passenger Joined Your Ride - Ride Along',
       html: `
@@ -181,11 +218,17 @@ export const sendDriverNotification = async (bookingDetails) => {
       `
     }
 
-    await transporter.sendMail(mailOptions)
-    console.log('Driver notification email sent to:', ride.userEmail)
+    const result = await transporter.sendMail(mailOptions)
+    console.log('✅ Driver notification email sent successfully to:', ride.userEmail)
+    console.log('📧 Message ID:', result.messageId)
     return true
   } catch (error) {
-    console.error('Error sending driver notification email:', error)
+    console.error('❌ Error sending driver notification email:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response
+    })
     return false
   }
 }
