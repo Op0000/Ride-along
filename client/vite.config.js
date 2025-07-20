@@ -19,15 +19,11 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 1000,
     target: 'esnext',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
+    minify: 'esbuild', // Using esbuild for better compatibility
+    sourcemap: false,
+    reportCompressedSize: true
   },
   define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
   }
 })
