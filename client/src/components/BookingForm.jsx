@@ -25,22 +25,52 @@ export default function BookingForm({ rideId }) {
     if (error) setError('')
   }
 
+  const validateForm = () => {
+    const requiredFields = ['name', 'email', 'phone', 'age', 'gender']
+    const missingFields = requiredFields.filter(field => !userData[field]?.trim())
+    
+    if (missingFields.length > 0) {
+      setError(`Please fill in all required fields: ${missingFields.join(', ')}`)
+      return false
+    }
+
+    if (!captchaToken) {
+      setError('Please verify you are not a robot.')
+      return false
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(userData.email)) {
+      setError('Please enter a valid email address.')
+      return false
+    }
+
+    // Age validation
+    const age = parseInt(userData.age)
+    if (age < 18 || age > 120) {
+      setError('Age must be between 18 and 120 years.')
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const userId = localStorage.getItem('uid')
-    const token = localStorage.getItem('token')
-
-    if (!captchaToken) {
-      setError('Please verify you are not a robot.')
+    if (!validateForm()) {
       setLoading(false)
       return
     }
 
+    const userId = localStorage.getItem('uid')
+    const token = localStorage.getItem('token')
+
     if (!userId || !token) {
-      setError('You must be logged in to book a ride.')
+      setError('You must be logged in to book a ride. Please refresh the page and try again.')
       setLoading(false)
       return
     }
@@ -58,7 +88,7 @@ export default function BookingForm({ rideId }) {
           userEmail: userData.email,
           userName: userData.name,
           userPhone: userData.phone,
-          userAge: userData.age,
+          userAge: parseInt(userData.age),
           userGender: userData.gender,
           captcha: captchaToken
         }),
@@ -69,11 +99,17 @@ export default function BookingForm({ rideId }) {
         localStorage.setItem('profile', JSON.stringify(userData))
         navigate(`/booking-success/${rideId}`)
       } else {
-        setError(data.message || 'Booking failed!')
+        setError(data.error || data.message || 'Booking failed!')
+        // Reset captcha on error
+        setCaptchaToken(null)
+        window.grecaptcha?.reset()
       }
     } catch (err) {
       console.error('Booking error:', err)
-      setError('Network error. Please try again.')
+      setError('Network error. Please check your connection and try again.')
+      // Reset captcha on error
+      setCaptchaToken(null)
+      window.grecaptcha?.reset()
     } finally {
       setLoading(false)
     }
@@ -87,7 +123,7 @@ export default function BookingForm({ rideId }) {
       <h2 className="text-2xl font-bold text-center">Book This Ride</h2>
 
       {error && (
-        <p className="text-red-400 text-sm bg-red-100 p-2 rounded text-center">
+        <p className="text-red-400 text-sm bg-red-900/20 border border-red-500 p-3 rounded text-center">
           {error}
         </p>
       )}
@@ -97,7 +133,7 @@ export default function BookingForm({ rideId }) {
         type="text"
         value={userData.name || ''}
         onChange={handleChange}
-        placeholder="Full Name"
+        placeholder="Full Name *"
         className="w-full p-2 rounded text-black"
         required
       />
@@ -105,11 +141,11 @@ export default function BookingForm({ rideId }) {
       <input
         name="age"
         type="number"
-        min="1"
+        min="18"
         max="120"
         value={userData.age || ''}
         onChange={handleChange}
-        placeholder="Age"
+        placeholder="Age (18+) *"
         className="w-full p-2 rounded text-black"
         required
       />
@@ -121,7 +157,7 @@ export default function BookingForm({ rideId }) {
         className="w-full p-2 rounded text-black"
         required
       >
-        <option value="">Select Gender</option>
+        <option value="">Select Gender *</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
         <option value="other">Other</option>
@@ -133,7 +169,7 @@ export default function BookingForm({ rideId }) {
         type="email"
         value={userData.email || ''}
         onChange={handleChange}
-        placeholder="Email"
+        placeholder="Email *"
         className="w-full p-2 rounded text-black"
         required
       />
@@ -143,7 +179,7 @@ export default function BookingForm({ rideId }) {
         type="tel"
         value={userData.phone || ''}
         onChange={handleChange}
-        placeholder="Phone Number"
+        placeholder="Phone Number *"
         className="w-full p-2 rounded text-black"
         required
       />
@@ -190,4 +226,4 @@ export default function BookingForm({ rideId }) {
 
 BookingForm.propTypes = {
   rideId: PropTypes.string.isRequired
-        }
+}
