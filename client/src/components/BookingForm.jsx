@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import ReCAPTCHA from 'react-google-recaptcha'
 
-export default function BookingForm({ rideId }) {
+export default function BookingForm({ rideId, onBookingSuccess, currentSeatsAvailable = 1, ridePrice = 0 }) {
   const [userData, setUserData] = useState({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [captchaToken, setCaptchaToken] = useState(null)
+  const [seatsToBook, setSeatsToBook] = useState(1)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -53,6 +54,12 @@ export default function BookingForm({ rideId }) {
       return false
     }
 
+    // Seats validation
+    if (seatsToBook < 1 || seatsToBook > currentSeatsAvailable) {
+      setError(`Please select between 1 and ${currentSeatsAvailable} seats.`)
+      return false
+    }
+
     return true
   }
 
@@ -90,6 +97,7 @@ export default function BookingForm({ rideId }) {
           userPhone: userData.phone,
           userAge: parseInt(userData.age),
           userGender: userData.gender,
+          seatsBooked: seatsToBook,
           captcha: captchaToken
         }),
       })
@@ -97,6 +105,21 @@ export default function BookingForm({ rideId }) {
       const data = await res.json()
       if (res.ok) {
         localStorage.setItem('profile', JSON.stringify(userData))
+        
+        // Show success message with email confirmation info
+        alert(`✅ Booking successful! 
+        
+🎫 ${seatsToBook} seat(s) booked
+📧 Confirmation emails sent to you and the driver
+🚗 ${data.remainingSeats} seats remaining
+
+You will be redirected to the booking confirmation page.`)
+
+        // Call the success callback to refresh ride data
+        if (onBookingSuccess) {
+          onBookingSuccess()
+        }
+        
         navigate(`/booking-success/${rideId}`)
       } else {
         setError(data.error || data.message || 'Booking failed!')
@@ -184,6 +207,34 @@ export default function BookingForm({ rideId }) {
         required
       />
 
+      {/* Seat Selection */}
+      <div>
+        <label className="block text-sm mb-1 text-purple-300">Number of Seats *</label>
+        <select
+          value={seatsToBook}
+          onChange={(e) => {
+            setSeatsToBook(parseInt(e.target.value))
+            if (error) setError('')
+          }}
+          className="w-full p-2 rounded text-black"
+          required
+        >
+          {Array.from({ length: currentSeatsAvailable }, (_, i) => i + 1).map(num => (
+            <option key={num} value={num}>
+              {num} seat{num > 1 ? 's' : ''} {ridePrice > 0 ? `- ₹${num * ridePrice}` : ''}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-400 mt-1">
+          {currentSeatsAvailable} seat{currentSeatsAvailable > 1 ? 's' : ''} available
+          {ridePrice > 0 && seatsToBook > 0 && (
+            <span className="text-green-400 font-semibold ml-2">
+              Total: ₹{seatsToBook * ridePrice}
+            </span>
+          )}
+        </p>
+      </div>
+
       <div className="flex justify-center">
         <ReCAPTCHA
           sitekey="6LdlI4UrAAAAAFDXPMbQCK7lo79hzsr1AkB_Acyb"
@@ -217,7 +268,7 @@ export default function BookingForm({ rideId }) {
             Booking...
           </>
         ) : (
-          'Confirm Booking'
+          `Confirm Booking (${seatsToBook} seat${seatsToBook > 1 ? 's' : ''})`
         )}
       </button>
     </form>
@@ -225,5 +276,8 @@ export default function BookingForm({ rideId }) {
 }
 
 BookingForm.propTypes = {
-  rideId: PropTypes.string.isRequired
+  rideId: PropTypes.string.isRequired,
+  onBookingSuccess: PropTypes.func,
+  currentSeatsAvailable: PropTypes.number,
+  ridePrice: PropTypes.number
 }

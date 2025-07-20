@@ -2,6 +2,7 @@ import express from 'express'
 import Booking from '../models/Booking.js'
 import Ride from '../models/Ride.js'
 import { verifyFirebaseToken } from '../middleware/authMiddleware.js'
+import { sendBookingConfirmation, sendDriverNotification } from '../utils/emailService.js'
 
 const router = express.Router()
 
@@ -80,6 +81,13 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
       return res.status(404).json({ error: 'Ride not found' })
     }
 
+    // Check if ride is fully booked
+    if (ride.seatsAvailable === 0) {
+      return res.status(400).json({ 
+        error: 'This ride is fully booked. All seats are taken.' 
+      })
+    }
+
     if (ride.seatsAvailable < seatsBooked) {
       return res.status(400).json({ 
         error: `Not enough seats available. Only ${ride.seatsAvailable} seats left.` 
@@ -94,9 +102,23 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
       })
     }
 
-    // Update seat count
-    ride.seatsAvailable -= seatsBooked
-    await ride.save()
+    // Prevent driver from booking their own ride
+    if (ride.userId === userId) {
+      return res.status(400).json({ 
+        error: 'You cannot book your own ride.' 
+      })
+    }
+
+    // Update seat count FIRST (atomic operation)
+    const updatedRide = await Ride.findByIdAndUpdate(
+      rideId,
+      { $inc: { seatsAvailable: -seatsBooked } },
+      { new: true }
+    )
+
+    if (!updatedRide) {
+      return res.status(404).json({ error: 'Ride not found during seat update' })
+    }
 
     // Create booking
     const booking = new Booking({
@@ -112,14 +134,49 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
 
     await booking.save()
 
+    // Prepare email details
+    const emailDetails = {
+      userEmail,
+      userName,
+      userPhone,
+      userAge,
+      userGender,
+      seatsBooked,
+      ride: updatedRide,
+      booking
+    }
+
+    // Send emails asynchronously (don't wait for them to complete the response)
+    Promise.all([
+      sendBookingConfirmation(emailDetails),
+      sendDriverNotification(emailDetails)
+    ]).then(() => {
+      console.log('✅ All booking emails sent successfully')
+    }).catch((emailError) => {
+      console.error('❌ Error sending booking emails:', emailError)
+    })
+
     res.status(201).json({ 
-      message: 'Booking successful', 
+      message: 'Booking successful! Confirmation emails sent.', 
       booking,
-      remainingSeats: ride.seatsAvailable
+      remainingSeats: updatedRide.seatsAvailable,
+      isFullyBooked: updatedRide.seatsAvailable === 0
     })
 
   } catch (err) {
     console.error('[BOOKING ERROR]', err)
+    
+    // If booking creation failed, we should restore the seats
+    try {
+      await Ride.findByIdAndUpdate(
+        rideId,
+        { $inc: { seatsAvailable: seatsBooked } }
+      )
+      console.log('Seats restored due to booking failure')
+    } catch (restoreError) {
+      console.error('Error restoring seats:', restoreError)
+    }
+    
     res.status(500).json({ error: 'Internal server error. Please try again.' })
   }
 })
