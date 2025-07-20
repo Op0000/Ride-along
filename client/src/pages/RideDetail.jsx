@@ -2,7 +2,6 @@ import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { getAuth } from 'firebase/auth'
 import RouteMap from '../components/RouteMap'
-import ReCAPTCHA from 'react-google-recaptcha'
 import BookingForm from '../components/BookingForm'
 
 export default function RideDetail() {
@@ -10,12 +9,8 @@ export default function RideDetail() {
   const [ride, setRide] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  const [showCaptcha, setShowCaptcha] = useState(false)
-  const [verified, setVerified] = useState(false)
-  const [verifying, setVerifying] = useState(false)
-
   const [showBooking, setShowBooking] = useState(false)
+  const [userHasBooked, setUserHasBooked] = useState(false)
 
   const auth = getAuth()
   const currentUser = auth.currentUser
@@ -28,6 +23,11 @@ export default function RideDetail() {
       if (!res.ok) throw new Error('Ride not found')
       const data = await res.json()
       setRide(data)
+      
+      // Check if current user has booked this ride
+      if (currentUser) {
+        checkUserBooking(currentUser.uid)
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -35,41 +35,48 @@ export default function RideDetail() {
     }
   }
 
+  const checkUserBooking = async (userId) => {
+    try {
+      const res = await fetch(`https://ride-along-api.onrender.com/api/bookings/user/${userId}`)
+      if (res.ok) {
+        const bookings = await res.json()
+        const hasBooked = bookings.some(booking => 
+          booking.rideId && booking.rideId._id === id
+        )
+        setUserHasBooked(hasBooked)
+      }
+    } catch (err) {
+      console.error('Error checking user booking:', err)
+    }
+  }
+
   useEffect(() => {
     fetchRide()
   }, [id])
-
-  const handleCaptcha = (token) => {
-    if (token) {
-      setVerifying(true)
-      setTimeout(() => {
-        setVerified(true)
-        setShowCaptcha(false)
-        setVerifying(false)
-      }, 1000)
-    }
-  }
 
   const handleBookingSuccess = () => {
     // Refresh ride data to get updated seat count
     setLoading(true)
     fetchRide()
     setShowBooking(false)
+    setUserHasBooked(true) // User has now booked
   }
 
   const isRideFullyBooked = ride?.seatsAvailable === 0
   const isOwnRide = currentUser && ride?.userId === currentUser.uid
   const isLoggedIn = !!currentUser
+  const canSeeDetails = isOwnRide || userHasBooked
 
   const getBookingButtonText = () => {
     if (!isLoggedIn) return 'Login to Book'
     if (isOwnRide) return 'Your Ride'
+    if (userHasBooked) return 'Already Booked'
     if (isRideFullyBooked) return 'All Seats Booked'
     return `Book Now (${ride?.seatsAvailable} seats left)`
   }
 
   const getBookingButtonStyle = () => {
-    if (!isLoggedIn || isOwnRide || isRideFullyBooked) {
+    if (!isLoggedIn || isOwnRide || isRideFullyBooked || userHasBooked) {
       return 'bg-gray-600 cursor-not-allowed opacity-50'
     }
     return 'bg-blue-600 hover:bg-blue-700 transition-all'
@@ -102,33 +109,41 @@ export default function RideDetail() {
         </div>
         <div><strong>Departure Time:</strong> {new Date(ride.departureTime).toLocaleString()}</div>
 
-        {/* Sensitive Section */}
-        <div className="relative">
-          <div className={`transition-all duration-300 ${!verified ? 'blur-sm opacity-50 pointer-events-none' : ''}`}>
-            <div><strong>Driver Name:</strong> {ride.driverName}</div>
-            <div><strong>Driver Contact:</strong> {ride.driverContact}</div>
-            <div><strong>Vehicle Number:</strong> {ride.vehicleNumber}</div>
+        {/* Driver Details Section */}
+        <div className="bg-zinc-700 p-4 rounded-lg">
+          <h3 className="text-xl font-semibold text-blue-300 mb-3">Driver Information</h3>
+          
+          {/* Driver Name - Always Visible */}
+          <div className="mb-2">
+            <strong>Driver Name:</strong> {ride.driverName}
           </div>
-
-          {!verified && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 rounded-xl z-10">
-              {verifying ? (
-                <div className="text-blue-300 text-lg animate-pulse">Verifying...</div>
-              ) : showCaptcha ? (
-                <div className="bg-white p-4 rounded shadow text-black">
-                  <ReCAPTCHA
-                    sitekey="6LdlI4UrAAAAAFDXPMbQCK7lo79hzsr1AkB_Acyb"
-                    onChange={handleCaptcha}
-                  />
+          
+          {/* Contact Details - Conditional */}
+          <div className="relative">
+            <div className={`${!canSeeDetails ? 'filter blur-sm' : ''}`}>
+              <div className="mb-2">
+                <strong>Contact:</strong> {ride.driverContact}
+              </div>
+              <div>
+                <strong>Vehicle Number:</strong> {ride.vehicleNumber}
+              </div>
+            </div>
+            
+            {!canSeeDetails && (
+              <div className="absolute inset-0 flex items-center justify-center bg-zinc-700 bg-opacity-80 rounded">
+                <div className="text-center">
+                  <div className="text-blue-400 font-semibold mb-1">🔒 Book to see details</div>
+                  <div className="text-sm text-gray-400">Contact and vehicle details will be revealed after booking</div>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowCaptcha(true)}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded"
-                >
-                  Show Full Details
-                </button>
-              )}
+              </div>
+            )}
+          </div>
+          
+          {canSeeDetails && (
+            <div className="mt-3 p-2 bg-green-900 bg-opacity-30 rounded border border-green-500">
+              <div className="text-green-400 text-sm">
+                ✅ You can see all details because you have {isOwnRide ? 'posted this ride' : 'booked this ride'}
+              </div>
             </div>
           )}
         </div>
@@ -150,13 +165,17 @@ export default function RideDetail() {
                 alert('You cannot book your own ride')
                 return
               }
+              if (userHasBooked) {
+                alert('You have already booked this ride')
+                return
+              }
               if (isRideFullyBooked) {
                 alert('This ride is fully booked')
                 return
               }
               setShowBooking(true)
             }}
-            disabled={!isLoggedIn || isOwnRide || isRideFullyBooked}
+            disabled={!isLoggedIn || isOwnRide || isRideFullyBooked || userHasBooked}
             className={`${getBookingButtonStyle()} px-5 py-2 rounded-xl font-bold text-white`}
           >
             {getBookingButtonText()}
@@ -168,6 +187,9 @@ export default function RideDetail() {
           )}
           {isOwnRide && (
             <p className="text-sm text-blue-400 mt-2">This is your posted ride</p>
+          )}
+          {userHasBooked && (
+            <p className="text-sm text-green-400 mt-2">You have already booked this ride</p>
           )}
           {isRideFullyBooked && (
             <p className="text-sm text-red-400 mt-2">All seats have been booked for this ride</p>

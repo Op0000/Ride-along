@@ -106,12 +106,17 @@ export default function BookingForm({ rideId, onBookingSuccess, currentSeatsAvai
       if (res.ok) {
         localStorage.setItem('profile', JSON.stringify(userData))
         
-        // Show success message with email confirmation info
+        // Show success message with email status
+        const emailStatusMessage = data.emailResults 
+          ? `📧 Email Status:\n${data.emailResults.passengerEmailSent ? '✅ Confirmation sent to you' : '❌ Your confirmation failed'}\n${data.emailResults.driverEmailSent ? '✅ Driver notified' : '❌ Driver notification failed'}`
+          : '📧 Email notifications processed'
+
         alert(`✅ Booking successful! 
         
 🎫 ${seatsToBook} seat(s) booked
-📧 Confirmation emails sent to you and the driver
 🚗 ${data.remainingSeats} seats remaining
+
+${emailStatusMessage}
 
 You will be redirected to the booking confirmation page.`)
 

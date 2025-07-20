@@ -2,7 +2,7 @@ import express from 'express'
 import Booking from '../models/Booking.js'
 import Ride from '../models/Ride.js'
 import { verifyFirebaseToken } from '../middleware/authMiddleware.js'
-import { sendBookingConfirmation, sendDriverNotification } from '../utils/emailService.js'
+import { sendBookingConfirmation, sendDriverNotification, testEmailConfiguration } from '../utils/emailService.js'
 
 const router = express.Router()
 
@@ -17,6 +17,20 @@ const verifyCaptcha = async (captchaToken) => {
   const data = await response.json()
   return data.success
 }
+
+// ✅ Test email configuration endpoint
+router.get('/test-email', async (req, res) => {
+  try {
+    const isValid = await testEmailConfiguration()
+    if (isValid) {
+      res.json({ success: true, message: 'Email configuration is valid' })
+    } else {
+      res.status(500).json({ success: false, message: 'Email configuration failed' })
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
 
 // ✅ POST /api/bookings - Make a booking (NOW PROTECTED)
 router.post('/', verifyFirebaseToken, async (req, res) => {
@@ -146,21 +160,50 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
       booking
     }
 
-    // Send emails asynchronously (don't wait for them to complete the response)
-    Promise.all([
-      sendBookingConfirmation(emailDetails),
-      sendDriverNotification(emailDetails)
-    ]).then(() => {
-      console.log('✅ All booking emails sent successfully')
-    }).catch((emailError) => {
-      console.error('❌ Error sending booking emails:', emailError)
-    })
+    // Send emails with better error handling
+    console.log('🚀 Starting email sending process...')
+    
+    const emailPromises = [
+      sendBookingConfirmation(emailDetails).catch(err => {
+        console.error('❌ Passenger email failed:', err)
+        return false
+      }),
+      sendDriverNotification(emailDetails).catch(err => {
+        console.error('❌ Driver email failed:', err)
+        return false
+      })
+    ]
+
+    const emailResults = await Promise.allSettled(emailPromises)
+    
+    const passengerEmailSent = emailResults[0].status === 'fulfilled' && emailResults[0].value === true
+    const driverEmailSent = emailResults[1].status === 'fulfilled' && emailResults[1].value === true
+
+    console.log('📧 Email Results:')
+    console.log('  - Passenger email:', passengerEmailSent ? '✅ Sent' : '❌ Failed')
+    console.log('  - Driver email:', driverEmailSent ? '✅ Sent' : '❌ Failed')
+
+    let emailMessage = ''
+    if (passengerEmailSent && driverEmailSent) {
+      emailMessage = 'Confirmation emails sent to both you and the driver!'
+    } else if (passengerEmailSent) {
+      emailMessage = 'Confirmation email sent to you. Driver notification failed.'
+    } else if (driverEmailSent) {
+      emailMessage = 'Driver notification sent. Your confirmation email failed.'
+    } else {
+      emailMessage = 'Booking successful, but email notifications failed. Check your profile for booking details.'
+    }
 
     res.status(201).json({ 
-      message: 'Booking successful! Confirmation emails sent.', 
+      message: 'Booking successful!',
+      emailStatus: emailMessage,
       booking,
       remainingSeats: updatedRide.seatsAvailable,
-      isFullyBooked: updatedRide.seatsAvailable === 0
+      isFullyBooked: updatedRide.seatsAvailable === 0,
+      emailResults: {
+        passengerEmailSent,
+        driverEmailSent
+      }
     })
 
   } catch (err) {
