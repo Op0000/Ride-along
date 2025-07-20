@@ -1,9 +1,21 @@
 import express from 'express'
 import Booking from '../models/Booking.js'
 import Ride from '../models/Ride.js'
-import { verifyFirebaseToken } from '../middlewares/authMiddleware.js'
+import { verifyFirebaseToken } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
+
+// ✅ Function to verify reCAPTCHA
+const verifyCaptcha = async (captchaToken) => {
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY || '6LdlI4UrAAAAANvDGcdMHctyrnXUUBm7QQVlWOu8'
+  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `secret=${secretKey}&response=${captchaToken}`
+  })
+  const data = await response.json()
+  return data.success
+}
 
 // ✅ POST /api/bookings - Make a booking (NOW PROTECTED)
 router.post('/', verifyFirebaseToken, async (req, res) => {
@@ -15,13 +27,35 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
     userPhone,
     userAge,
     userGender,
-    seatsBooked = 1
+    seatsBooked = 1,
+    captcha
   } = req.body
 
   // 🔥 Add validation for required fields
   if (!rideId || !userId || !userEmail) {
     return res.status(400).json({
       error: 'Validation failed: rideId, userId and userEmail are required.'
+    })
+  }
+
+  // ✅ Verify captcha
+  if (!captcha) {
+    return res.status(400).json({
+      error: 'Captcha verification required.'
+    })
+  }
+
+  try {
+    const captchaValid = await verifyCaptcha(captcha)
+    if (!captchaValid) {
+      return res.status(400).json({
+        error: 'Invalid captcha. Please try again.'
+      })
+    }
+  } catch (captchaError) {
+    console.error('Captcha verification error:', captchaError)
+    return res.status(500).json({
+      error: 'Captcha verification failed. Please try again.'
     })
   }
 

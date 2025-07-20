@@ -21,6 +21,37 @@ import Terms from './pages/Terms.jsx'
 import Privacy from './pages/PrivacyPolicy.jsx'
 import Refund from './pages/Refund.jsx'
 
+// ✅ BookingSuccess component
+function BookingSuccess() {
+  const navigate = useNavigate()
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
+      <div className="bg-zinc-800 p-8 rounded-xl shadow-2xl max-w-md mx-auto text-white border border-green-500 backdrop-blur-md text-center">
+        <div className="text-6xl text-green-500 mb-4">✅</div>
+        <h1 className="text-3xl font-bold text-green-400 mb-4">Booking Successful!</h1>
+        <p className="text-gray-300 mb-6">
+          Your ride has been booked successfully. You'll receive confirmation details via email.
+        </p>
+        <div className="space-y-3">
+          <button
+            onClick={() => navigate('/search')}
+            className="w-full bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded transition-colors"
+          >
+            Search More Rides
+          </button>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded transition-colors"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -168,6 +199,9 @@ function App() {
         <Route path="/search" element={<SearchRides />} />
         <Route path="/ride/:id" element={<RideDetail />} />
         <Route path="/profile" element={<Profile />} />
+        
+        {/* ✅ Booking Success Route */}
+        <Route path="/booking-success/:rideId" element={<BookingSuccess />} />
 
         {/* ✅ Legal Routes */}
         <Route path="/terms" element={<Terms />} />
