@@ -107,7 +107,25 @@ export default function Home() {
                   <div><span className="font-semibold text-white">Driver:</span> {ride.driverName}</div>
                   <div><span className="font-semibold text-white">Vehicle:</span> {ride.vehicleNumber}</div>
                   <div><span className="font-semibold text-white">Price:</span> ₹{ride.price}</div>
-                  <div><span className="font-semibold text-white">Seats:</span> {ride.seatsAvailable}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-white">Seats:</span> 
+                    <span className={`font-bold ${ride.seatsAvailable === 0 ? 'text-red-400' : ride.seatsAvailable <= 2 ? 'text-yellow-400' : 'text-green-400'}`}>
+                      {ride.seatsAvailable}
+                    </span>
+                    {ride.seatsAvailable === 0 && (
+                      <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+                        FULLY BOOKED
+                      </span>
+                    )}
+                    {ride.seatsAvailable > 0 && ride.seatsAvailable <= 2 && (
+                      <span className="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold">
+                        FILLING FAST
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-2">
+                    <span className="font-semibold">Departure:</span> {new Date(ride.departureTime).toLocaleDateString()} at {new Date(ride.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
                 </Link>
               </motion.li>
             ))}
