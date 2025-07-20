@@ -124,5 +124,79 @@ router.post('/', verifyFirebaseToken, async (req, res) => {
   }
 })
 
+// ✅ GET /api/bookings/user/:userId — Get bookings by a specific user
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const bookings = await Booking.find({ userId: req.params.userId })
+      .sort({ bookedAt: -1 })
+    
+    // Manually populate ride details and filter out bookings for deleted rides
+    const populatedBookings = []
+    
+    for (const booking of bookings) {
+      try {
+        const ride = await Ride.findById(booking.rideId)
+        if (ride) {
+          // Ride still exists, include the booking with ride details
+          populatedBookings.push({
+            ...booking.toObject(),
+            rideId: ride
+          })
+        } else {
+          // Ride was deleted, optionally clean up orphaned booking
+          console.log(`Orphaned booking found: ${booking._id} - ride ${booking.rideId} no longer exists`)
+          // Uncomment the next line if you want to auto-delete orphaned bookings
+          // await Booking.findByIdAndDelete(booking._id)
+        }
+      } catch (rideError) {
+        console.error(`Error fetching ride ${booking.rideId}:`, rideError)
+        // Include booking without ride details if there's an error
+        populatedBookings.push({
+          ...booking.toObject(),
+          rideId: null
+        })
+      }
+    }
+    
+    res.json(populatedBookings)
+  } catch (err) {
+    console.error('[GET USER BOOKINGS ERROR]', err)
+    res.status(500).json({ error: 'Failed to fetch user bookings' })
+  }
+})
+
+// ✅ DELETE /api/bookings/:id — Cancel a booking (protected route)
+router.delete('/:id', verifyFirebaseToken, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+    
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' })
+    }
+
+    // Check if the user owns this booking
+    if (booking.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'You can only cancel your own bookings' })
+    }
+
+    // Get the associated ride to restore seats
+    const ride = await Ride.findById(booking.rideId)
+    if (ride) {
+      ride.seatsAvailable += booking.seatsBooked
+      await ride.save()
+    }
+
+    await Booking.findByIdAndDelete(req.params.id)
+    
+    res.json({ 
+      message: 'Booking cancelled successfully',
+      restoredSeats: booking.seatsBooked
+    })
+  } catch (err) {
+    console.error('[CANCEL BOOKING ERROR]', err)
+    res.status(500).json({ error: 'Failed to cancel booking' })
+  }
+})
+
 export default router
   
