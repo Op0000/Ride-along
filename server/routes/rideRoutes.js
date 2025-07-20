@@ -1,5 +1,6 @@
 import express from 'express'
 import Ride from '../models/Ride.js'
+import Booking from '../models/Booking.js'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 
 const router = express.Router()
@@ -51,12 +52,51 @@ router.get('/', async (req, res) => {
   }
 })
 
+// ✅ GET /api/rides/user/:userId — Get rides posted by a specific user
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const rides = await Ride.find({ userId: req.params.userId }).sort({ createdAt: -1 })
+    res.json(rides)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ✅ GET /api/rides/:id — Get single ride by ID
 router.get('/:id', async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.id)
     if (!ride) return res.status(404).json({ error: 'Ride not found' })
     res.json(ride)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ✅ DELETE /api/rides/:id — Delete a ride (protected route)
+router.delete('/:id', verifyFirebaseToken, async (req, res) => {
+  try {
+    const ride = await Ride.findById(req.params.id)
+    
+    if (!ride) {
+      return res.status(404).json({ error: 'Ride not found' })
+    }
+
+    // Check if the user owns this ride
+    if (ride.userId !== req.user.uid) {
+      return res.status(403).json({ error: 'You can only delete your own rides' })
+    }
+
+    // Check if there are any bookings for this ride
+    const bookings = await Booking.find({ rideId: req.params.id })
+    if (bookings.length > 0) {
+      return res.status(400).json({ 
+        error: `Cannot delete ride. ${bookings.length} booking(s) exist for this ride.` 
+      })
+    }
+
+    await Ride.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Ride deleted successfully' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
