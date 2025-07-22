@@ -15,6 +15,7 @@ import PostRide from './pages/PostRide.jsx'
 import SearchRides from './pages/SearchRide.jsx'
 import RideDetail from './pages/RideDetail.jsx'
 import Profile from './pages/Profile.jsx'
+import SOS from './pages/SOS.jsx'
 
 // ✅ Import your legal pages
 import Terms from './pages/Terms.jsx'
@@ -287,6 +288,7 @@ function App() {
         <div className="flex items-center gap-4 relative" ref={dropdownRef}>
           <Link to="/post" className="hover:underline">Post Ride</Link>
           <Link to="/search" className="hover:underline">Search</Link>
+          <Link to="/sos" className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white font-semibold transition">🆘 SOS</Link>
 
           {user ? (
             <div className="relative">
@@ -304,6 +306,13 @@ function App() {
                     className="block px-4 py-2 hover:bg-blue-100 transition"
                   >
                     👤 Profile
+                  </Link>
+                  <Link
+                    to="/sos"
+                    onClick={() => setDropdownOpen(false)}
+                    className="block px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 transition font-semibold"
+                  >
+                    🆘 Emergency SOS
                   </Link>
                   <hr className="my-1" />
                   <Link
@@ -354,6 +363,7 @@ function App() {
         <Route path="/search" element={<SearchRides />} />
         <Route path="/ride/:id" element={<RideDetail />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/sos" element={<SOS />} />
         
         {/* ✅ Booking Success Route */}
         <Route path="/booking-success/:rideId" element={<BookingSuccess />} />
