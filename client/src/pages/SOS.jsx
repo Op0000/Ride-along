@@ -5,10 +5,9 @@ export default function SOS() {
   const [userLocation, setUserLocation] = useState(null)
   const [locationError, setLocationError] = useState(null)
   const [emergencyContacts] = useState([
-    { name: "Police", number: "911", icon: "🚔" },
-    { name: "Fire Department", number: "911", icon: "🚒" },
-    { name: "Medical Emergency", number: "911", icon: "🚑" },
-    { name: "Roadside Assistance", number: "1-800-AAA-HELP", icon: "🔧" }
+    { name: "Emergency Services", number: "112", icon: "🚨", description: "Universal emergency number" },
+    { name: "Local Emergency", number: "911", icon: "🚔", description: "US/Canada emergency services" },
+    { name: "Roadside Assistance", number: "1-800-AAA-HELP", icon: "🔧", description: "Vehicle breakdown help" }
   ])
   const [sosMessage, setSosMessage] = useState('')
   const [isEmergency, setIsEmergency] = useState(false)
@@ -40,7 +39,37 @@ export default function SOS() {
   }
 
   const handleEmergencyCall = (number) => {
+    // This will open the phone's dialer with the number pre-filled
+    // The user can then decide whether to call or not
     window.location.href = `tel:${number}`
+  }
+
+  const triggerPhoneSOS = () => {
+    // Try different methods to trigger phone's native SOS
+    const userAgent = navigator.userAgent.toLowerCase()
+    
+    if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
+      // For iOS devices - provide instructions for Emergency SOS
+      alert(`📱 iPhone Emergency SOS:\n\n` +
+            `Method 1: Press and hold Side button + Volume button\n` +
+            `Method 2: Press Side button 5 times rapidly\n` +
+            `Method 3: Use Emergency SOS in Control Center\n\n` +
+            `This will automatically call emergency services and notify your emergency contacts.`)
+    } else if (userAgent.includes('android')) {
+      // For Android devices
+      alert(`📱 Android Emergency SOS:\n\n` +
+            `Method 1: Press Power button 5 times rapidly\n` +
+            `Method 2: Use Emergency button on lock screen\n` +
+            `Method 3: Say "Hey Google, call emergency services"\n\n` +
+            `Check your phone's Emergency SOS settings for more options.`)
+    } else {
+      // Generic instructions
+      alert(`📱 Phone Emergency Features:\n\n` +
+            `• Check your phone's Emergency/SOS settings\n` +
+            `• Most phones: Press power button multiple times\n` +
+            `• Use voice assistant: "Call emergency services"\n` +
+            `• Emergency contacts are usually accessible from lock screen`)
+    }
   }
 
   const shareLocation = () => {
@@ -103,10 +132,25 @@ export default function SOS() {
         </div>
       </div>
 
+      {/* Phone SOS Feature */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-2 border-red-200">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-800 mb-2">📱 Use Your Phone's Emergency SOS</h2>
+          <p className="text-gray-600 mb-4">Activate your phone's built-in emergency features that will automatically call emergency services and notify your emergency contacts</p>
+          <button
+            onClick={triggerPhoneSOS}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xl px-8 py-4 rounded-lg transition duration-200 shadow-lg"
+          >
+            🆘 ACTIVATE PHONE SOS
+          </button>
+          <p className="text-sm text-gray-500 mt-2">This will show you how to use your phone's native emergency features</p>
+        </div>
+      </div>
+
       {/* Emergency Call Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Emergency Contacts</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Quick Dial Emergency Numbers</h2>
           <div className="space-y-3">
             {emergencyContacts.map((contact, index) => (
               <button
@@ -119,6 +163,7 @@ export default function SOS() {
                   <div className="text-left">
                     <div className="font-semibold">{contact.name}</div>
                     <div className="text-red-200 text-sm">{contact.number}</div>
+                    <div className="text-red-100 text-xs">{contact.description}</div>
                   </div>
                 </div>
                 <span className="text-xl">📞</span>
@@ -186,6 +231,43 @@ export default function SOS() {
         </div>
       </div>
 
+      {/* Phone Setup Instructions */}
+      <div className="bg-blue-50 rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-blue-800">📱 Setup Your Phone's Emergency Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-700 mb-3 flex items-center">
+              <span className="text-2xl mr-2">📱</span> iPhone Setup
+            </h3>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>• <strong>Settings → Emergency SOS</strong></li>
+              <li>• Enable "Call with Side Button"</li>
+              <li>• Add emergency contacts in Health app</li>
+              <li>• Enable "Share During Emergency Call"</li>
+              <li>• Test: Press Side + Volume button</li>
+            </ul>
+          </div>
+          <div className="bg-white p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-700 mb-3 flex items-center">
+              <span className="text-2xl mr-2">🤖</span> Android Setup
+            </h3>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>• <strong>Settings → Safety & Emergency</strong></li>
+              <li>• Setup Emergency SOS</li>
+              <li>• Add emergency contacts</li>
+              <li>• Enable location sharing</li>
+              <li>• Test: Press Power button 5 times</li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-800">
+            <strong>💡 Tip:</strong> Set up your emergency contacts in your phone's settings before you need them. 
+            Most modern phones can automatically call emergency services and send your location to trusted contacts.
+          </p>
+        </div>
+      </div>
+
       {/* Safety Tips */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Safety Tips</h2>
@@ -199,15 +281,16 @@ export default function SOS() {
               <li>• Keep emergency contacts readily available</li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-700 mb-2">📱 App Safety:</h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Enable location services for accurate tracking</li>
-              <li>• Use SOS feature only for real emergencies</li>
-              <li>• Keep your profile and contact info updated</li>
-              <li>• Report any suspicious activity immediately</li>
-            </ul>
-          </div>
+                     <div>
+             <h3 className="font-semibold text-gray-700 mb-2">📱 Phone Emergency Features:</h3>
+             <ul className="text-sm text-gray-600 space-y-1">
+               <li>• Set up emergency contacts in your phone</li>
+               <li>• Enable location sharing for emergencies</li>
+               <li>• Practice using your phone's SOS feature</li>
+               <li>• Keep your phone charged and accessible</li>
+               <li>• Know how to quickly access emergency dialer</li>
+             </ul>
+           </div>
         </div>
       </div>
 
