@@ -49,8 +49,8 @@ export default function BookingForm({ rideId, onBookingSuccess, currentSeatsAvai
 
     // Age validation
     const age = parseInt(userData.age)
-    if (age < 18 || age > 120) {
-      setError('Age must be between 18 and 120 years.')
+    if (age < 16 || age > 120) {
+      setError('Age must be between 16 and 120 years.')
       return false
     }
 
