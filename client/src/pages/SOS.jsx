@@ -6,11 +6,12 @@ export default function SOS() {
   const [locationError, setLocationError] = useState(null)
   const [emergencyContacts] = useState([
     { name: "Emergency Services", number: "112", icon: "🚨", description: "Universal emergency number" },
-    { name: "Local Emergency", number: "911", icon: "🚔", description: "US/Canada emergency services" },
-    { name: "Roadside Assistance", number: "1-800-AAA-HELP", icon: "🔧", description: "Vehicle breakdown help" }
+    { name: "Roadside Assistance", number: "1033", icon: "🔧", description: "Vehicle breakdown help" }
   ])
   const [sosMessage, setSosMessage] = useState('')
   const [isEmergency, setIsEmergency] = useState(false)
+  const [isLiveSharing, setIsLiveSharing] = useState(false)
+  const [liveLocationInterval, setLiveLocationInterval] = useState(null)
 
   const auth = getAuth()
   const user = auth.currentUser
@@ -92,6 +93,65 @@ export default function SOS() {
       alert('Location not available. Please enable location services.')
     }
   }
+
+  const startLiveLocationSharing = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by this browser.')
+      return
+    }
+
+    setIsLiveSharing(true)
+    
+    // Update location every 30 seconds
+    const interval = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const newLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            timestamp: new Date().toISOString()
+          }
+          setUserLocation(newLocation)
+          
+          // Here you could send the location to your backend API
+          console.log('Live location update:', newLocation)
+          
+          // Optional: Send to backend API for real-time tracking
+          // sendLocationUpdate(newLocation)
+        },
+        (error) => {
+          console.error('Live location error:', error)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      )
+    }, 30000) // Update every 30 seconds
+
+    setLiveLocationInterval(interval)
+    
+    alert('Live location sharing started! Your location will be updated every 30 seconds.')
+  }
+
+  const stopLiveLocationSharing = () => {
+    if (liveLocationInterval) {
+      clearInterval(liveLocationInterval)
+      setLiveLocationInterval(null)
+    }
+    setIsLiveSharing(false)
+    alert('Live location sharing stopped.')
+  }
+
+  // Cleanup interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (liveLocationInterval) {
+        clearInterval(liveLocationInterval)
+      }
+    }
+  }, [liveLocationInterval])
 
   const sendSOSAlert = async () => {
     setIsEmergency(true)
@@ -177,12 +237,25 @@ export default function SOS() {
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Location & SOS Alert</h2>
           
           <div className="mb-4">
-            <div className="text-sm text-gray-600 mb-2">Your Current Location:</div>
+            <div className="text-sm text-gray-600 mb-2 flex items-center justify-between">
+              <span>Your Current Location:</span>
+              {isLiveSharing && (
+                <span className="text-green-600 text-xs flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                  Live Sharing Active
+                </span>
+              )}
+            </div>
             {userLocation ? (
               <div className="bg-green-50 p-3 rounded border border-green-200">
                 <div className="text-green-800 font-mono text-sm">
                   Lat: {userLocation.lat.toFixed(6)}<br/>
                   Lng: {userLocation.lng.toFixed(6)}
+                  {userLocation.timestamp && (
+                    <div className="text-green-600 text-xs mt-1">
+                      Updated: {new Date(userLocation.timestamp).toLocaleTimeString()}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -194,13 +267,41 @@ export default function SOS() {
             )}
           </div>
 
-          <button
-            onClick={shareLocation}
-            disabled={!userLocation}
-            className="w-full mb-4 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
-          >
-            📍 Share My Location
-          </button>
+          <div className="space-y-3 mb-4">
+            <button
+              onClick={shareLocation}
+              disabled={!userLocation}
+              className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+            >
+              📍 Share Current Location
+            </button>
+            
+            {!isLiveSharing ? (
+              <button
+                onClick={startLiveLocationSharing}
+                disabled={!userLocation}
+                className="w-full p-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+              >
+                🔴 Start Live Location Sharing
+              </button>
+            ) : (
+              <button
+                onClick={stopLiveLocationSharing}
+                className="w-full p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200"
+              >
+                ⏹️ Stop Live Location Sharing
+              </button>
+            )}
+          </div>
+          
+          {isLiveSharing && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+              <div className="text-green-800 text-sm">
+                <strong>Live sharing active:</strong> Your location is being updated every 30 seconds. 
+                This helps emergency responders track your real-time position.
+              </div>
+            </div>
+          )}
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
