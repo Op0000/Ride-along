@@ -119,15 +119,79 @@ export default function SOS() {
     }
   }
 
-  const generateShareableLink = (location) => {
+  const generateShareableLink = async (location) => {
     // Create a unique session ID for this live location sharing session
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2)
     
-    // Create shareable link (you could store this in your backend for real sharing)
-    const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
-    setShareableLink(shareableUrl)
-    
-    return shareableUrl
+    try {
+      // Store the live location session in the backend
+      const response = await fetch('https://ride-along-api.onrender.com/api/live-location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          userId: user?.uid,
+          userName: user?.displayName || 'Anonymous User',
+          userEmail: user?.email || 'unknown@email.com',
+          location,
+          placeName: placeName || '',
+          message: sosMessage || '',
+          accuracy: 'High' // You can get this from geolocation API if needed
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
+        setShareableLink(shareableUrl)
+        console.log('✅ Live location session created:', data)
+        return shareableUrl
+      } else {
+        throw new Error('Failed to create live location session')
+      }
+    } catch (error) {
+      console.error('❌ Error creating live location session:', error)
+      // Fallback to client-only link
+      const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
+      setShareableLink(shareableUrl)
+      return shareableUrl
+    }
+  }
+
+  const updateLiveLocationSession = async (newLocation) => {
+    if (!shareableLink) return
+
+    // Extract session ID from the shareable link
+    const sessionId = shareableLink.split('/').pop()
+
+    try {
+      const response = await fetch('https://ride-along-api.onrender.com/api/live-location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          userId: user?.uid,
+          userName: user?.displayName || 'Anonymous User',
+          userEmail: user?.email || 'unknown@email.com',
+          location: newLocation,
+          placeName: placeName || '',
+          message: sosMessage || '',
+          accuracy: 'High'
+        })
+      })
+
+      if (response.ok) {
+        console.log('✅ Live location updated successfully')
+      } else {
+        console.error('❌ Failed to update live location')
+      }
+    } catch (error) {
+      console.error('❌ Error updating live location:', error)
+    }
   }
 
   const startLiveLocationSharing = () => {
@@ -159,14 +223,13 @@ export default function SOS() {
           
           // Update shareable link if needed
           if (!shareableLink) {
-            generateShareableLink(newLocation)
+            await generateShareableLink(newLocation)
+          } else {
+            // Update existing session with new location
+            await updateLiveLocationSession(newLocation)
           }
           
-          // Here you could send the location to your backend API
           console.log('Live location update:', newLocation)
-          
-          // Optional: Send to backend API for real-time tracking
-          // sendLocationUpdate(newLocation)
         },
         (error) => {
           console.error('Live location error:', error)
@@ -184,11 +247,32 @@ export default function SOS() {
     alert('Live location sharing started! Your location will be updated every 30 seconds.')
   }
 
-  const stopLiveLocationSharing = () => {
+  const stopLiveLocationSharing = async () => {
     if (liveLocationInterval) {
       clearInterval(liveLocationInterval)
       setLiveLocationInterval(null)
     }
+
+    // Stop the backend session if it exists
+    if (shareableLink && user) {
+      const sessionId = shareableLink.split('/').pop()
+      
+      try {
+        await fetch(`https://ride-along-api.onrender.com/api/live-location/${sessionId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.uid
+          })
+        })
+        console.log('✅ Live location session stopped')
+      } catch (error) {
+        console.error('❌ Error stopping live location session:', error)
+      }
+    }
+
     setIsLiveSharing(false)
     setShareableLink(null)
     alert('Live location sharing stopped.')

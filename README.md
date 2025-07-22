@@ -39,10 +39,11 @@
 
 ### 🚨 Emergency & Safety Features
 - **SOS Emergency System**: Quick access to emergency services
-- **Live Location Sharing**: Real-time location broadcasting for safety
+- **Live Location Sharing**: Real-time location broadcasting with shareable links
 - **Emergency Contacts**: Direct access to emergency numbers (112, 1033)
 - **Location Services**: GPS tracking and reverse geocoding
 - **Platform-specific SOS**: Native emergency features for iOS/Android
+- **Live Location Viewer**: Dedicated page for viewing shared emergency locations
 
 ### 💼 Business Features
 - **Automated Cleanup**: Scheduled removal of expired rides
@@ -249,6 +250,12 @@
 ### Authentication
 - `POST /api/auth/verify` - Verify Firebase token
 - `GET /api/users/:id` - Get user profile
+
+### Live Location
+- `POST /api/live-location` - Create/update live location session
+- `GET /api/live-location/:sessionId` - Get live location data
+- `DELETE /api/live-location/:sessionId` - Stop live location sharing
+- `GET /api/live-location/user/:userId` - Get user's active sessions
 
 ### Health & Monitoring
 - `GET /health` - Health check endpoint
