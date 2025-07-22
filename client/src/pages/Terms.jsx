@@ -7,7 +7,7 @@ export default function TermsAndConditions() {
         <div>
           <h2 className="font-semibold text-lg text-purple-300">1. Eligibility</h2>
           <p className="mt-2">
-            You must be at least <strong className="text-green-400">13 years old</strong> to use Ride Along. 
+            You must be at least <strong className="text-green-400">16 years old</strong> to use Ride Along. 
             You are solely responsible for keeping your login credentials safe.
           </p>
         </div>
