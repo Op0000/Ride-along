@@ -21,6 +21,7 @@ import SOS from './pages/SOS.jsx'
 import Terms from './pages/Terms.jsx'
 import Privacy from './pages/PrivacyPolicy.jsx'
 import Refund from './pages/Refund.jsx'
+import LiveLocation from './pages/LiveLocation.jsx'
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -367,6 +368,9 @@ function App() {
         
         {/* ✅ Booking Success Route */}
         <Route path="/booking-success/:rideId" element={<BookingSuccess />} />
+
+        {/* ✅ Live Location Route */}
+        <Route path="/live-location/:sessionId" element={<LiveLocation />} />
 
         {/* ✅ Legal Routes */}
         <Route path="/terms" element={<Terms />} />
