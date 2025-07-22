@@ -12,6 +12,8 @@ export default function SOS() {
   const [isEmergency, setIsEmergency] = useState(false)
   const [isLiveSharing, setIsLiveSharing] = useState(false)
   const [liveLocationInterval, setLiveLocationInterval] = useState(null)
+  const [shareableLink, setShareableLink] = useState(null)
+  const [placeName, setPlaceName] = useState(null)
 
   const auth = getAuth()
   const user = auth.currentUser
@@ -20,14 +22,37 @@ export default function SOS() {
     getCurrentLocation()
   }, [])
 
+  const getPlaceName = async (lat, lng) => {
+    try {
+      // Using OpenStreetMap Nominatim API for reverse geocoding (free)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      )
+      const data = await response.json()
+      
+      if (data && data.display_name) {
+        setPlaceName(data.display_name)
+      } else {
+        setPlaceName("Location name not available")
+      }
+    } catch (error) {
+      console.error("Error getting place name:", error)
+      setPlaceName("Unable to get location name")
+    }
+  }
+
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
+        async (position) => {
+          const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setUserLocation(location)
+          
+          // Get place name
+          await getPlaceName(location.lat, location.lng)
         },
         (error) => {
           setLocationError("Unable to get your location. Please enable location services.")
@@ -94,6 +119,17 @@ export default function SOS() {
     }
   }
 
+  const generateShareableLink = (location) => {
+    // Create a unique session ID for this live location sharing session
+    const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2)
+    
+    // Create shareable link (you could store this in your backend for real sharing)
+    const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
+    setShareableLink(shareableUrl)
+    
+    return shareableUrl
+  }
+
   const startLiveLocationSharing = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser.')
@@ -102,16 +138,29 @@ export default function SOS() {
 
     setIsLiveSharing(true)
     
+    // Generate initial shareable link
+    if (userLocation) {
+      generateShareableLink(userLocation)
+    }
+    
     // Update location every 30 seconds
     const interval = setInterval(() => {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const newLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             timestamp: new Date().toISOString()
           }
           setUserLocation(newLocation)
+          
+          // Get updated place name
+          await getPlaceName(newLocation.lat, newLocation.lng)
+          
+          // Update shareable link if needed
+          if (!shareableLink) {
+            generateShareableLink(newLocation)
+          }
           
           // Here you could send the location to your backend API
           console.log('Live location update:', newLocation)
@@ -141,7 +190,18 @@ export default function SOS() {
       setLiveLocationInterval(null)
     }
     setIsLiveSharing(false)
+    setShareableLink(null)
     alert('Live location sharing stopped.')
+  }
+
+  const copyShareableLink = () => {
+    if (shareableLink) {
+      navigator.clipboard.writeText(shareableLink).then(() => {
+        alert('Shareable link copied to clipboard! Send this to people who need to track your location.')
+      }).catch(() => {
+        alert('Unable to copy link. Please copy manually: ' + shareableLink)
+      })
+    }
   }
 
   // Cleanup interval on component unmount
@@ -248,9 +308,16 @@ export default function SOS() {
             </div>
             {userLocation ? (
               <div className="bg-green-50 p-3 rounded border border-green-200">
-                <div className="text-green-800 font-mono text-sm">
-                  Lat: {userLocation.lat.toFixed(6)}<br/>
-                  Lng: {userLocation.lng.toFixed(6)}
+                <div className="text-green-800 text-sm">
+                  {placeName && (
+                    <div className="font-semibold mb-2 text-green-700">
+                      📍 {placeName}
+                    </div>
+                  )}
+                  <div className="font-mono text-xs">
+                    Lat: {userLocation.lat.toFixed(6)}<br/>
+                    Lng: {userLocation.lng.toFixed(6)}
+                  </div>
                   {userLocation.timestamp && (
                     <div className="text-green-600 text-xs mt-1">
                       Updated: {new Date(userLocation.timestamp).toLocaleTimeString()}
@@ -300,6 +367,31 @@ export default function SOS() {
                 <strong>Live sharing active:</strong> Your location is being updated every 30 seconds. 
                 This helps emergency responders track your real-time position.
               </div>
+              
+              {shareableLink && (
+                <div className="mt-3 pt-3 border-t border-green-300">
+                  <div className="text-green-700 font-semibold text-sm mb-2">
+                    🔗 Shareable Live Location Link:
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={shareableLink}
+                      readOnly
+                      className="flex-1 p-2 text-xs bg-white border border-green-300 rounded font-mono"
+                    />
+                    <button
+                      onClick={copyShareableLink}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-xs transition duration-200"
+                    >
+                      📋 Copy
+                    </button>
+                  </div>
+                  <div className="text-green-600 text-xs mt-1">
+                    Share this link with emergency contacts to let them track your live location
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
