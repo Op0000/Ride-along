@@ -315,8 +315,8 @@ export default function Footer() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-400 text-sm">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span>Service Status: Operational</span>
+                <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+                <span>Service Status: In Development</span>
               </div>
             </div>
           </div>
