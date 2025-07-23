@@ -87,7 +87,7 @@ export default function About() {
   const stats = [
     { number: "10,000+", label: "Safe Rides Completed", icon: "🚗" },
     { number: "5,000+", label: "Happy Users", icon: "😊" },
-    { number: "50+", label: "Cities Covered", icon: "🌍" },
+    { number: "PAN India", label: "Cities Covered", icon: "🌍" },
     { number: "24/7", label: "Emergency Support", icon: "🚨" }
   ]
 
@@ -168,13 +168,31 @@ export default function About() {
                 <li className="flex items-start">
                   <span className="text-2xl mr-3">✅</span>
                   <div>
+                    <strong>100% Free to Use:</strong> No subscription fees or hidden charges
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-2xl mr-3">✅</span>
+                  <div>
                     <strong>Safety First:</strong> Emergency SOS system with live location sharing
                   </div>
                 </li>
                 <li className="flex items-start">
                   <span className="text-2xl mr-3">✅</span>
                   <div>
+                    <strong>Driver has Full Control:</strong> Complete autonomy over ride decisions
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-2xl mr-3">✅</span>
+                  <div>
                     <strong>Smart Matching:</strong> AI-powered algorithm for optimal ride pairing
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-2xl mr-3">✅</span>
+                  <div>
+                    <strong>No Hidden Charges:</strong> Transparent pricing with upfront costs
                   </div>
                 </li>
                 <li className="flex items-start">
