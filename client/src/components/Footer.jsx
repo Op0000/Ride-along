@@ -309,4 +309,4 @@ export default function Footer() {
       </div>
     </footer>
   )
-}
+}// Trigger Vercel redeploy for footer fix - Wed Jul 23 02:14:33 PM UTC 2025
