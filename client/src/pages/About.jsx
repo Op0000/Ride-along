@@ -1,7 +1,21 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
 
 export default function About() {
+  useEffect(() => {
+    // Handle hash navigation on page load
+    const hash = window.location.hash.substring(1)
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }, [])
+
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
@@ -78,7 +92,7 @@ export default function About() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
       {/* Hero Section */}
       <motion.section 
         className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 text-white py-20"
@@ -119,6 +133,7 @@ export default function About() {
 
       {/* Mission Section */}
       <motion.section 
+        id="mission"
         className="py-16"
         variants={staggerContainer}
         initial="initial"
@@ -127,27 +142,28 @@ export default function About() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div variants={fadeInUp}>
-              <h2 className="text-4xl font-bold text-gray-800 mb-6">Our Mission</h2>
-              <p className="text-lg text-gray-600 mb-6">
+              <h2 className="text-4xl font-bold text-white mb-6">Our Mission</h2>
+              <p className="text-lg text-gray-300 mb-6">
                 At Ride Along, we believe transportation should be accessible, safe, and sustainable. 
                 Our platform connects drivers and passengers heading in the same direction, reducing 
                 traffic congestion, carbon emissions, and travel costs.
               </p>
-              <p className="text-lg text-gray-600 mb-6">
+                              <p className="text-lg text-gray-300 mb-6">
                 We're not just about getting from point A to point B – we're about building communities, 
                 fostering connections, and making every journey safer with our advanced emergency features.
               </p>
               <div className="flex flex-wrap gap-4">
-                <span className="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-medium">🌱 Eco-Friendly</span>
-                <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-medium">💰 Cost-Effective</span>
-                <span className="bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-medium">🤝 Community-Driven</span>
+                <span className="bg-blue-900 text-blue-300 px-4 py-2 rounded-full font-medium">🌱 Eco-Friendly</span>
+                <span className="bg-green-900 text-green-300 px-4 py-2 rounded-full font-medium">💰 Cost-Effective</span>
+                <span className="bg-purple-900 text-purple-300 px-4 py-2 rounded-full font-medium">🤝 Community-Driven</span>
               </div>
             </motion.div>
             <motion.div 
+              id="safety"
               variants={fadeInUp}
-              className="bg-white p-8 rounded-2xl shadow-lg"
+              className="bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-700"
             >
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Why Choose Ride Along?</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">Why Choose Ride Along?</h3>
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <span className="text-2xl mr-3">✅</span>
@@ -179,65 +195,68 @@ export default function About() {
         </div>
       </motion.section>
 
-      {/* Stats Section */}
-      <motion.section 
-        className="py-16 bg-white"
+              {/* Stats Section */}
+        <motion.section 
+          id="impact"
+          className="py-16 bg-gray-800"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
         <div className="max-w-6xl mx-auto px-4">
           <motion.div variants={fadeInUp} className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Our Impact</h2>
-            <p className="text-xl text-gray-600">Making a difference in urban transportation</p>
+            <h2 className="text-4xl font-bold text-white mb-4">Our Impact</h2>
+            <p className="text-xl text-gray-300">Making a difference in urban transportation</p>
           </motion.div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <motion.div 
                 key={index}
                 variants={fadeInUp}
-                className="text-center bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl"
+                className="text-center bg-gradient-to-br from-gray-700 to-gray-600 p-6 rounded-xl border border-gray-600"
               >
                 <div className="text-4xl mb-2">{stat.icon}</div>
-                <div className="text-3xl font-bold text-blue-600 mb-2">{stat.number}</div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
+                                  <div className="text-3xl font-bold text-blue-400 mb-2">{stat.number}</div>
+                  <div className="text-gray-300 font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* Features Section */}
-      <motion.section 
-        className="py-16"
+              {/* Features Section */}
+        <motion.section 
+          id="features"
+          className="py-16"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
         <div className="max-w-6xl mx-auto px-4">
           <motion.div variants={fadeInUp} className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">Platform Features</h2>
-            <p className="text-xl text-gray-600">Cutting-edge technology for seamless ride-sharing</p>
+            <h2 className="text-4xl font-bold text-white mb-4">Platform Features</h2>
+            <p className="text-xl text-gray-300">Cutting-edge technology for seamless ride-sharing</p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div 
                 key={index}
                 variants={fadeInUp}
-                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300"
+                className="bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300 border border-gray-700"
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                  <p className="text-gray-300">{feature.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </motion.section>
 
-      {/* Technology Section */}
-      <motion.section 
-        className="py-16 bg-gray-900 text-white"
+              {/* Technology Section */}
+        <motion.section 
+          id="technology"
+          className="py-16 bg-gray-900 text-white"
         variants={staggerContainer}
         initial="initial" 
         animate="animate"
@@ -275,9 +294,10 @@ export default function About() {
         </div>
       </motion.section>
 
-      {/* Contact Section */}
-      <motion.section 
-        className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              {/* Contact Section */}
+        <motion.section 
+          id="contact"
+          className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white"
         variants={staggerContainer}
         initial="initial"
         animate="animate"

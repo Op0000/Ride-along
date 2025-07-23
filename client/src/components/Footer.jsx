@@ -4,6 +4,22 @@ import { motion } from 'framer-motion'
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
+  const handleLinkClick = (path) => {
+    if (path.includes('#')) {
+      const [route, hash] = path.split('#')
+      if (window.location.pathname === route) {
+        // Same page, just scroll to section
+        const element = document.getElementById(hash)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      } else {
+        // Different page, navigate and then scroll
+        window.location.href = path
+      }
+    }
+  }
+
   const quickLinks = [
     { name: "Find Rides", path: "/", icon: "🚗" },
     { name: "Post Ride", path: "/post", icon: "📍" },
@@ -21,13 +37,12 @@ export default function Footer() {
   const emergencyLinks = [
     { name: "Emergency SOS", path: "/sos", icon: "🚨" },
     { name: "Safety Center", path: "/about#safety", icon: "🛡️" },
-    { name: "Emergency Contacts", path: "/sos#contacts", icon: "📞" }
+    { name: "Emergency Contacts", path: "/sos", icon: "📞" }
   ]
 
   const socialLinks = [
-    { name: "GitHub", url: "https://github.com/Op0000/Ride-along", icon: "💻" },
-    { name: "Support", url: "mailto:support@ridealong.com", icon: "📧" },
-    { name: "Feedback", url: "mailto:feedback@ridealong.com", icon: "💬" }
+    { name: "Support", url: "mailto:help.trenddash@gmail.com", icon: "📧" },
+    { name: "Feedback", url: "mailto:help.trenddash@gmail.com", icon: "💬" }
   ]
 
   const fadeInUp = {
@@ -140,15 +155,27 @@ export default function Footer() {
             <ul className="space-y-2 mb-4">
               {emergencyLinks.map((link, index) => (
                 <li key={index}>
-                  <Link 
-                    to={link.path}
-                    className="text-gray-300 hover:text-red-400 transition duration-200 flex items-center group"
-                  >
-                    <span className="mr-2 group-hover:scale-110 transition-transform duration-200">
-                      {link.icon}
-                    </span>
-                    {link.name}
-                  </Link>
+                  {link.path.includes('#') ? (
+                    <button
+                      onClick={() => handleLinkClick(link.path)}
+                      className="text-gray-300 hover:text-red-400 transition duration-200 flex items-center group w-full text-left"
+                    >
+                      <span className="mr-2 group-hover:scale-110 transition-transform duration-200">
+                        {link.icon}
+                      </span>
+                      {link.name}
+                    </button>
+                  ) : (
+                    <Link 
+                      to={link.path}
+                      className="text-gray-300 hover:text-red-400 transition duration-200 flex items-center group"
+                    >
+                      <span className="mr-2 group-hover:scale-110 transition-transform duration-200">
+                        {link.icon}
+                      </span>
+                      {link.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -183,24 +210,22 @@ export default function Footer() {
                   <div>
                     <p className="font-medium">Email Support</p>
                     <a 
-                      href="mailto:support@ridealong.com" 
+                      href="mailto:help.trenddash@gmail.com" 
                       className="text-purple-400 hover:text-purple-300 transition duration-200"
                     >
-                      support@ridealong.com
+                      help.trenddash@gmail.com
                     </a>
                   </div>
                 </div>
                 <div className="flex items-center text-gray-300">
-                  <span className="mr-3 text-xl">💻</span>
+                  <span className="mr-3 text-xl">💬</span>
                   <div>
-                    <p className="font-medium">Open Source</p>
+                    <p className="font-medium">Get Help</p>
                     <a 
-                      href="https://github.com/Op0000/Ride-along" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                      href="mailto:help.trenddash@gmail.com" 
                       className="text-purple-400 hover:text-purple-300 transition duration-200"
                     >
-                      GitHub Repository
+                      Contact Support
                     </a>
                   </div>
                 </div>
