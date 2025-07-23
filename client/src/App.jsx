@@ -22,6 +22,8 @@ import Terms from './pages/Terms.jsx'
 import Privacy from './pages/PrivacyPolicy.jsx'
 import Refund from './pages/Refund.jsx'
 import LiveLocation from './pages/LiveLocation.jsx'
+import About from './pages/About.jsx'
+import Footer from './components/Footer.jsx'
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -317,6 +319,13 @@ function App() {
                   </Link>
                   <hr className="my-1" />
                   <Link
+                    to="/about"
+                    onClick={() => setDropdownOpen(false)}
+                    className="block px-4 py-2 hover:bg-blue-100 transition"
+                  >
+                    ℹ️ About Us
+                  </Link>
+                  <Link
                     to="/terms"
                     onClick={() => setDropdownOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-blue-100 transition"
@@ -376,7 +385,11 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/refund" element={<Refund />} />
+        <Route path="/about" element={<About />} />
       </Routes>
+      
+      {/* Footer Component */}
+      <Footer />
     </div>
   )
 }
