@@ -23,6 +23,7 @@ import Privacy from './pages/PrivacyPolicy.jsx'
 import Refund from './pages/Refund.jsx'
 import LiveLocation from './pages/LiveLocation.jsx'
 import About from './pages/About.jsx'
+import Support from './pages/Support.jsx'
 import Footer from './components/Footer.jsx'
 
 // ✅ BookingSuccess component
@@ -215,8 +216,10 @@ function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const auth = getAuth()
   const dropdownRef = useRef()
+  const mobileMenuRef = useRef()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -245,6 +248,9 @@ function App() {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false)
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -283,86 +289,221 @@ function App() {
 
   return (
     <div>
-      <nav className="p-4 bg-blue-600 text-white flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-  <img src="/logo.png" alt="Ride Along Logo" className="h-10" />
-  <span className="font-bold text-xl">Ride Along</span>
-</Link>
-        <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-          <Link to="/post" className="hover:underline">Post Ride</Link>
-          <Link to="/search" className="hover:underline">Search</Link>
-          <Link to="/sos" className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white font-semibold transition">🆘 SOS</Link>
+      <nav className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg relative">
+        <div className="px-4 py-3">
+          <div className="flex justify-between items-center">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 text-white">
+              <img src="/logo.png" alt="Ride Along Logo" className="h-10" />
+              <span className="font-bold text-xl">Ride Along</span>
+            </Link>
 
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="bg-white text-blue-600 font-semibold px-3 py-1 rounded hover:bg-blue-100 transition"
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-6">
+              <Link to="/post" className="text-white hover:text-blue-200 transition font-medium">
+                📝 Post Ride
+              </Link>
+              <Link to="/search" className="text-white hover:text-blue-200 transition font-medium">
+                🔍 Search
+              </Link>
+              <Link to="/support" className="text-white hover:text-blue-200 transition font-medium">
+                🛟 Support
+              </Link>
+              <Link 
+                to="/sos" 
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-semibold transition transform hover:scale-105 shadow-lg"
               >
-                {user.displayName?.split(' ')[0] || 'User'} ⌄
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white text-blue-700 rounded shadow-lg z-50 animate-fade-in-down">
-                  <Link
-                    to="/profile"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 hover:bg-blue-100 transition"
-                  >
-                    👤 Profile
-                  </Link>
-                  <Link
-                    to="/sos"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 bg-red-50 text-red-700 hover:bg-red-100 transition font-semibold"
-                  >
-                    🆘 Emergency SOS
-                  </Link>
-                  <hr className="my-1" />
-                  <Link
-                    to="/about"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 hover:bg-blue-100 transition"
-                  >
-                    ℹ️ About Us
-                  </Link>
-                  <Link
-                    to="/terms"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-sm hover:bg-blue-100 transition"
-                  >
-                    📜 Terms & Conditions
-                  </Link>
-                  <Link
-                    to="/privacy"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-sm hover:bg-blue-100 transition"
-                  >
-                    🔒 Privacy Policy
-                  </Link>
-                  <Link
-                    to="/refund"
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-sm hover:bg-blue-100 transition"
-                  >
-                    💸 Refund Policy & Contact
-                  </Link>
-                  <hr className="my-1" />
+                🆘 SOS
+              </Link>
+              
+              {user ? (
+                <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-blue-100 transition"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="bg-white text-blue-600 font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition shadow-md"
                   >
-                    🚪 Logout
+                    {user.displayName?.split(' ')[0] || 'User'} ⌄
                   </button>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-60 bg-white text-blue-700 rounded-xl shadow-xl z-50 border border-blue-100">
+                      <Link
+                        to="/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="block px-4 py-3 hover:bg-blue-50 transition border-b border-blue-100"
+                      >
+                        👤 Profile & Bookings
+                      </Link>
+                      <Link
+                        to="/about"
+                        onClick={() => setDropdownOpen(false)}
+                        className="block px-4 py-3 hover:bg-blue-50 transition border-b border-blue-100"
+                      >
+                        ℹ️ About Us
+                      </Link>
+                      <Link
+                        to="/support"
+                        onClick={() => setDropdownOpen(false)}
+                        className="block px-4 py-3 hover:bg-blue-50 transition border-b border-blue-100"
+                      >
+                        🛟 Support Center
+                      </Link>
+                      <div className="px-4 py-2 border-b border-blue-100">
+                        <p className="text-xs text-blue-500 font-medium mb-2">Legal & Policies</p>
+                        <div className="grid grid-cols-1 gap-1">
+                          <Link
+                            to="/terms"
+                            onClick={() => setDropdownOpen(false)}
+                            className="text-sm hover:text-blue-800 transition"
+                          >
+                            📜 Terms & Conditions
+                          </Link>
+                          <Link
+                            to="/privacy"
+                            onClick={() => setDropdownOpen(false)}
+                            className="text-sm hover:text-blue-800 transition"
+                          >
+                            🔒 Privacy Policy
+                          </Link>
+                          <Link
+                            to="/refund"
+                            onClick={() => setDropdownOpen(false)}
+                            className="text-sm hover:text-blue-800 transition"
+                          >
+                            💸 Refund Policy
+                          </Link>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-3 hover:bg-red-50 hover:text-red-700 transition rounded-b-xl"
+                      >
+                        🚪 Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition shadow-md"
+                >
+                  🔐 Login with Google
+                </button>
               )}
             </div>
-          ) : (
-            <button
-              onClick={handleLogin}
-              className="bg-white text-blue-600 px-3 py-1 rounded font-semibold hover:bg-blue-100 transition"
-            >
-              Login with Google
-            </button>
+
+            {/* Mobile Navigation Toggle & SOS */}
+            <div className="lg:hidden flex items-center gap-3">
+              <Link 
+                to="/sos" 
+                className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg text-white font-semibold transition text-sm"
+              >
+                🆘 SOS
+              </Link>
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-white hover:text-blue-200 transition p-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div ref={mobileMenuRef} className="lg:hidden mt-4 bg-blue-700 rounded-xl shadow-xl border border-blue-500">
+              <div className="py-2">
+                <Link
+                  to="/post"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                >
+                  📝 Post a Ride
+                </Link>
+                <Link
+                  to="/search"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                >
+                  🔍 Search Rides
+                </Link>
+                <Link
+                  to="/support"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                >
+                  🛟 Support Center
+                </Link>
+
+                {user ? (
+                  <>
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                    >
+                      👤 Profile & Bookings
+                    </Link>
+                    <Link
+                      to="/about"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                    >
+                      ℹ️ About Us
+                    </Link>
+                    
+                    <div className="px-4 py-2 border-b border-blue-600">
+                      <p className="text-xs text-blue-200 font-medium mb-2">Legal & Policies</p>
+                      <div className="space-y-1">
+                        <Link
+                          to="/terms"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-sm text-blue-200 hover:text-white transition"
+                        >
+                          📜 Terms & Conditions
+                        </Link>
+                        <Link
+                          to="/privacy"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-sm text-blue-200 hover:text-white transition"
+                        >
+                          🔒 Privacy Policy
+                        </Link>
+                        <Link
+                          to="/refund"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block text-sm text-blue-200 hover:text-white transition"
+                        >
+                          💸 Refund Policy
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        handleLogout()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-red-200 hover:bg-red-600 hover:text-white transition"
+                    >
+                      🚪 Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handleLogin()
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-3 text-white hover:bg-blue-600 transition"
+                  >
+                    🔐 Login with Google
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </nav>
@@ -386,6 +527,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/refund" element={<Refund />} />
         <Route path="/about" element={<About />} />
+        <Route path="/support" element={<Support />} />
       </Routes>
       
       {/* Footer Component */}
