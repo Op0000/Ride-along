@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.js'
 import userRoutes from './routes/users.js'
 import bookingRoutes from './routes/bookingRoutes.js'
 import liveLocationRoutes from './routes/liveLocationRoutes.js'
+import supportRoutes from './routes/supportRoutes.js'
 
 const app = express()
 
@@ -17,6 +18,7 @@ app.use('/api/bookings', (req, res, next) => {
   next()
 }) // Debug
 // Routes
+app.use('/api/support', supportRoutes)
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
