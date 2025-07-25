@@ -20,29 +20,57 @@ export default function Support() {
   const [submitStatus, setSubmitStatus] = useState('')
 
   const handleEmailSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setSubmitStatus('Sending email...')
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setSubmitting(false)
-      setSubmitStatus('Email sent successfully! We\'ll respond within 24 hours.')
-      setEmailForm({ name: '', email: '', subject: '', message: '' })
-    }, 2000)
-  }
+  e.preventDefault()
+  setSubmitting(true)
+  setSubmitStatus('Sending email...')
 
+  try {
+    const res = await fetch('https://ride-along-api.onrender.com/api/support/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(emailForm)
+    })
+
+    const data = await res.json()
+    setSubmitting(false)
+    if (res.ok) {
+      setSubmitStatus(data.message)
+      setEmailForm({ name: '', email: '', subject: '', message: '' })
+    } else {
+      setSubmitStatus(data.error || 'Failed to send email.')
+    }
+  } catch (err) {
+    console.error('Support email error:', err)
+    setSubmitStatus('Something went wrong. Try again later.')
+    setSubmitting(false)
+  }
+  }
+  
   const handleCallbackSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setSubmitStatus('Requesting callback...')
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setSubmitting(false)
-      setSubmitStatus('Callback request submitted! We\'ll contact you soon.')
+  e.preventDefault()
+  setSubmitting(true)
+  setSubmitStatus('Requesting callback...')
+
+  try {
+    const res = await fetch('https://ride-along-api.onrender.com/api/support/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(callbackForm)
+    })
+
+    const data = await res.json()
+    setSubmitting(false)
+    if (res.ok) {
+      setSubmitStatus(data.message)
       setCallbackForm({ name: '', phone: '', preferredTime: '', message: '' })
-    }, 2000)
+    } else {
+      setSubmitStatus(data.error || 'Callback request failed.')
+    }
+  } catch (err) {
+    console.error('Callback error:', err)
+    setSubmitStatus('Something went wrong. Try again later.')
+    setSubmitting(false)
+  }
   }
 
   return (
