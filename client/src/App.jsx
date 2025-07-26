@@ -210,6 +210,17 @@ function BookingSuccess() {
         </div>
       </div>
     </div>
+    {/* Trustpilot Widget */}
+<div className="mt-6">
+  <div className="trustpilot-widget"
+    data-locale="en-US"
+    data-template-id="56278e9abfbbba0bdcd568bc"
+    data-businessunit-id="6884f1eebf3047186ff310e4"
+    data-style-height="52px"
+    data-style-width="100%">
+    <a href="https://www.trustpilot.com/review/ride-along.xyz" target="_blank" rel="noopener">Trustpilot</a>
+  </div>
+</div>
   )
 }
 
