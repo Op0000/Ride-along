@@ -209,8 +209,7 @@ function BookingSuccess() {
           </div>
         </div>
       </div>
-    </div>
-    {/* Trustpilot Widget */}
+      {/* Trustpilot Widget */}
 <div className="mt-6">
   <div className="trustpilot-widget"
     data-locale="en-US"
@@ -221,6 +220,7 @@ function BookingSuccess() {
     <a href="https://www.trustpilot.com/review/ride-along.xyz" target="_blank" rel="noopener">Trustpilot</a>
   </div>
 </div>
+    </div>
   )
 }
 
