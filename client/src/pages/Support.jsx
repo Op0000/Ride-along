@@ -124,11 +124,12 @@ export default function Support() {
           
           <div className="bg-zinc-700 rounded-xl p-12 text-center border-2 border-dashed border-zinc-600">
             <div className="text-zinc-400 text-lg mb-4">
-              💬 Live chatbot will load here
-            </div>
-            <p className="text-zinc-500 text-sm">
-              Chat widget will be integrated with Tidio for real-time support
-            </p>
+              <iframe
+    src="https://www.chatbase.co/chatbot-iframe/CmQwdP9jE9EdxA4yRpISi"
+    width="100%"
+    style="height: 100%; min-height: 700px"
+    frameborder="0"
+></iframe>
           </div>
         </section>
 
