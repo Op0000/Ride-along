@@ -24,6 +24,7 @@ import Refund from './pages/Refund.jsx'
 import LiveLocation from './pages/LiveLocation.jsx'
 import About from './pages/About.jsx'
 import Support from './pages/Support.jsx'
+import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
 
 // ✅ BookingSuccess component
@@ -528,6 +529,9 @@ function App() {
         <Route path="/refund" element={<Refund />} />
         <Route path="/about" element={<About />} />
         <Route path="/support" element={<Support />} />
+        
+        {/* ✅ 404 Route - Must be last */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       
       {/* Footer Component */}
