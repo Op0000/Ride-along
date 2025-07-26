@@ -85,9 +85,9 @@ export default function About() {
   ]
 
   const stats = [
-    { number: "10,000+", label: "Safe Rides Completed", icon: "🚗" },
-    { number: "5,000+", label: "Happy Users", icon: "😊" },
-    { number: "PAN India", label: "Cities Covered", icon: "🌍" },
+    { number: "10+", label: "Safe Rides Completed", icon: "🚗" },
+    { number: "50+", label: "Happy Users", icon: "😊" },
+    { number: "Full Uttar Pradesh", label: "Coverage", icon: "🌍" },
     { number: "24/7", label: "Emergency Support", icon: "🚨" }
   ]
 
