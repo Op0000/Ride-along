@@ -233,7 +233,7 @@ export default function Footer() {
                   <span className="mr-3 text-xl">🌍</span>
                   <div>
                     <p className="font-medium">Service Area</p>
-                    <p className="text-gray-400">PAN India Coverage</p>
+                    <p className="text-gray-400">Uttar Pradesh Coverage</p>
                   </div>
                 </div>
               </div>
