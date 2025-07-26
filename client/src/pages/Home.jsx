@@ -82,7 +82,7 @@ export default function Home() {
 
       {/* Ride List */}
       <motion.div
-        className="bg-zinc-800 p-4 rounded-xl shadow-lg"
+        className="bg-zinc-800 p-4 rounded-xl shadow-lg mb-8"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
@@ -132,6 +132,23 @@ export default function Home() {
           </ul>
         )}
       </motion.div>
+
+      {/* Trustpilot Widget */}
+      <div className="mt-10 flex justify-center">
+        <div className="trustpilot-widget"
+          data-locale="en-US"
+          data-template-id="56278e9abfbbba0bdcd568bc"
+          data-businessunit-id="6884f1eebf3047186ff310e4"
+          data-style-height="52px"
+          data-style-width="100%">
+          <a href="https://www.trustpilot.com/review/ride-along.xyz"
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="text-green-400 underline text-center block mt-4">
+            Leave a Review on Trustpilot
+          </a>
+        </div>
+      </div>
     </motion.div>
   )
 }
