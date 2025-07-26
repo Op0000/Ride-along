@@ -10,22 +10,8 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api).*)",
+      "source": "/((?!api|_next/static|_next/image|favicon.ico|assets|static).*)",
       "destination": "/index.html"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "headers": {
-        "cache-control": "s-maxage=31536000"
-      }
-    },
-    {
-      "src": "/assets/(.*)",
-      "headers": {
-        "cache-control": "s-maxage=31536000"
-      }
     }
   ]
 }
