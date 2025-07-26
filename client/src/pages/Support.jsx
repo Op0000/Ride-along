@@ -379,6 +379,21 @@ export default function Support() {
             </Link>
           </div>
         </section>
+        {/* Trustpilot Widget */}
+        <section className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-2xl p-6 border border-zinc-700 text-center">
+          <h2 className="text-2xl font-bold text-green-400 mb-4">💬 We value your feedback!</h2>
+          <p className="text-zinc-300 mb-6">Leave a review on Trustpilot and help others discover Ride Along.</p>
+          <div className="w-full max-w-xl mx-auto">
+            <div className="trustpilot-widget"
+              data-locale="en-US"
+              data-template-id="56278e9abfbbba0bdcd568bc"
+              data-businessunit-id="6884f1eebf3047186ff310e4"
+              data-style-height="52px"
+              data-style-width="100%">
+              <a href="https://www.trustpilot.com/review/ride-along.xyz" target="_blank" rel="noopener">Trustpilot</a>
+            </div>
+          </div>
+        </section>
 
         {/* Emergency Notice */}
         <div className="bg-gradient-to-r from-red-900 to-red-800 p-6 rounded-xl border border-red-600 text-center">
