@@ -9,13 +9,21 @@ export default function AutocompleteInput({ name, value, onChange, placeholder }
 
     const controller = new AbortController()
 
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&accept-language=en`, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'RideAlong/1.0' }
-    })
+    fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${query}&accept-language=en&countrycodes=in&addressdetails=1`,
+      {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'RideAlong/1.0' }
+      }
+    )
       .then(res => res.json())
-      .then(data => setSuggestions(data))
-      .catch(err => console.log(err))
+      .then(data => {
+        const upSuggestions = data.filter(place =>
+          place.address?.state?.toLowerCase() === 'uttar pradesh'
+        )
+        setSuggestions(upSuggestions)
+      })
+      .catch(err => console.error('Nominatim error:', err))
 
     return () => controller.abort()
   }, [query])
@@ -24,7 +32,7 @@ export default function AutocompleteInput({ name, value, onChange, placeholder }
     const displayName = place.display_name
     setQuery(displayName)
     setSuggestions([])
-    onChange(name, displayName) // 🔥 Send field name + value to parent
+    onChange(name, displayName)
   }
 
   return (
@@ -34,7 +42,7 @@ export default function AutocompleteInput({ name, value, onChange, placeholder }
         onChange={(e) => {
           const val = e.target.value
           setQuery(val)
-          onChange(name, val) // 🔥 Send field name + value on type
+          onChange(name, val)
         }}
         placeholder={placeholder}
         className="input"
