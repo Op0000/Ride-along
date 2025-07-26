@@ -8,10 +8,10 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!api|_next/static|_next/image|favicon.ico|assets|static).*)",
+      "destination": "/index.html"
     }
   ]
 }
