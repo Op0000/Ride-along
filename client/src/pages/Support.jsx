@@ -141,7 +141,7 @@ export default function Support() {
               
               <div className="bg-zinc-700 p-6 rounded-xl border border-zinc-600">
                 <h3 className="text-xl font-semibold text-white mb-3">💰 What payment methods do you accept?</h3>
-                <p className="text-zinc-300">We accept UPI, credit/debit cards, net banking, and digital wallets. All payments are secure and encrypted.</p>
+                <p className="text-zinc-300">This depends on driver and the current conditions at that time. Must confirm with your driver first.</p>
               </div>
               
               <div className="bg-zinc-700 p-6 rounded-xl border border-zinc-600">
@@ -153,7 +153,7 @@ export default function Support() {
             <div className="space-y-6">
               <div className="bg-zinc-700 p-6 rounded-xl border border-zinc-600">
                 <h3 className="text-xl font-semibold text-white mb-3">🔄 Can I cancel my booking?</h3>
-                <p className="text-zinc-300">Yes, you can cancel up to 2 hours before departure. Cancellation charges may apply based on timing.</p>
+                <p className="text-zinc-300">You must confirm with your driver regarding this minimum 3 hours prior to the departure time. In most cases this is possible.</p>
               </div>
               
               <div className="bg-zinc-700 p-6 rounded-xl border border-zinc-600">
@@ -163,7 +163,7 @@ export default function Support() {
               
               <div className="bg-zinc-700 p-6 rounded-xl border border-zinc-600">
                 <h3 className="text-xl font-semibold text-white mb-3">🌍 Where do you operate?</h3>
-                <p className="text-zinc-300">We operate PAN India with coverage in all major cities and intercity routes. Check our coverage map for details.</p>
+                <p className="text-zinc-300">We operate all over Uttar Pradesh with coverage in all major cities and intercity routes. Check our coverage map for details.</p>
               </div>
             </div>
           </div>
