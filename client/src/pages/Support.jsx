@@ -106,19 +106,24 @@ export default function Support() {
           </div>
         </div>
 
-        {/* Live Chat Section */}
-        <section className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-2xl p-8 border border-zinc-700">
-          <div className="text-center mb-8">
+        {/* Live Chat Section - Mobile Optimized */}
+        <section className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-2xl p-4 md:p-8 border border-zinc-700">
+          <div className="text-center mb-6">
             <h2 className="text-3xl font-bold text-purple-400 mb-4">💬 Live Chat Support</h2>
             <p className="text-zinc-300 text-lg">Get instant help from our support agents</p>
           </div>
-          <div className="bg-zinc-700 rounded-xl p-12 text-center border-2 border-dashed border-zinc-600">
+          
+          {/* Mobile-Optimized Chat Container */}
+          <div className="w-full bg-zinc-700 rounded-xl border border-zinc-600 overflow-hidden">
             <iframe
               src="https://www.chatbase.co/chatbot-iframe/CmQwdP9jE9EdxA4yRpISi"
-              width="100%"
-              style={{ height: '100%', minHeight: '700px' }}
+              className="w-full h-96 md:h-[500px] lg:h-[600px]"
               frameBorder="0"
-              title="Chatbot"
+              title="AI Support Chatbot"
+              style={{ 
+                minHeight: '384px',
+                maxWidth: '100%'
+              }}
             ></iframe>
           </div>
         </section>
