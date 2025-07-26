@@ -83,7 +83,7 @@ export default function Support() {
             Support Center 🛟
           </h1>
           <p className="text-zinc-300 text-xl max-w-3xl mx-auto leading-relaxed">
-            Need help with Ride Along? We're here to assist you 24/7. Choose from multiple ways to get support.
+            Need help with Ride Along? We're here to assist you. Choose from multiple ways to get support.
           </p>
         </div>
 
@@ -98,13 +98,6 @@ export default function Support() {
             <p className="text-red-100">Immediate emergency assistance</p>
           </Link>
           
-          <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-xl text-center">
-            <div className="text-4xl mb-3">📞</div>
-            <h3 className="text-xl font-bold mb-2">24/7 Helpline</h3>
-            <p className="text-green-100 mb-2">+91-XXX-XXX-XXXX</p>
-            <p className="text-green-200 text-sm">Available round the clock</p>
-          </div>
-          
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-center">
             <div className="text-4xl mb-3">✉️</div>
             <h3 className="text-xl font-bold mb-2">Email Support</h3>
@@ -117,19 +110,16 @@ export default function Support() {
         <section className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-2xl p-8 border border-zinc-700">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-purple-400 mb-4">💬 Live Chat Support</h2>
-            <p className="text-zinc-300 text-lg">
-              Get instant help from our support agents
-            </p>
+            <p className="text-zinc-300 text-lg">Get instant help from our support agents</p>
           </div>
-          
           <div className="bg-zinc-700 rounded-xl p-12 text-center border-2 border-dashed border-zinc-600">
-            <div className="text-zinc-400 text-lg mb-4">
-              <iframe
-    src="https://www.chatbase.co/chatbot-iframe/CmQwdP9jE9EdxA4yRpISi"
-    width="100%"
-    style="height: 100%; min-height: 700px"
-    frameborder="0"
-></iframe>
+            <iframe
+              src="https://www.chatbase.co/chatbot-iframe/CmQwdP9jE9EdxA4yRpISi"
+              width="100%"
+              style={{ height: '100%', minHeight: '700px' }}
+              frameBorder="0"
+              title="Chatbot"
+            ></iframe>
           </div>
         </section>
 
