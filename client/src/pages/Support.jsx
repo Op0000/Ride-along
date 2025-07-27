@@ -19,6 +19,48 @@ export default function Support() {
   const [submitting, setSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('')
 
+    // Load Trustpilot widget script
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
+    script.async = true
+    document.head.appendChild(script)
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script)
+      }
+    }
+  }, [])
+
+  // Load Zoho Desk script - PROPERLY IMPLEMENTED
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.id = 'zohodeskasapscript'
+    script.defer = true
+    script.src = 'https://desk.zoho.in/portal/api/web/asapApp/212189000000276695?orgId=60044434885'
+    
+    const existingScript = document.getElementsByTagName('script')[0]
+    if (existingScript && existingScript.parentNode) {
+      existingScript.parentNode.insertBefore(script, existingScript)
+    }
+
+    window.ZohoDeskAsapReady = function(s) {
+      const e = window.ZohoDeskAsap__asyncalls = window.ZohoDeskAsap__asyncalls || []
+      window.ZohoDeskAsapReadyStatus
+        ? (s && e.push(s), e.forEach(callback => callback && callback()), window.ZohoDeskAsap__asyncalls = null)
+        : s && e.push(s)
+    }
+
+    return () => {
+      const scriptElement = document.getElementById('zohodeskasapscript')
+      if (scriptElement && scriptElement.parentNode) {
+        scriptElement.parentNode.removeChild(scriptElement)
+      }
+    }
+  }, [])
+          
   const handleEmailSubmit = async (e) => {
   e.preventDefault()
   setSubmitting(true)
@@ -417,30 +459,8 @@ export default function Support() {
             </a>
           </div>
         </div>
-<script
-  type="text/javascript"
-  id="zohodeskasap"
-  dangerouslySetInnerHTML={{
-    __html: `
-      var d = document;
-      var s = d.createElement("script");
-      s.type = "text/javascript";
-      s.id = "zohodeskasapscript";
-      s.defer = true;
-      s.src = "https://desk.zoho.in/portal/api/web/asapApp/212189000000276695?orgId=60044434885";
-      var t = d.getElementsByTagName("script")[0];
-      t.parentNode.insertBefore(s, t);
-
-      window.ZohoDeskAsapReady = function(s) {
-        var e = window.ZohoDeskAsap__asyncalls = window.ZohoDeskAsap__asyncalls || [];
-        window.ZohoDeskAsapReadyStatus
-          ? (s && e.push(s), e.forEach(s => s && s()), window.ZohoDeskAsap__asyncalls = null)
-          : s && e.push(s);
-      };
-    `
-  }}
-/>
-
-</div>
-)
+        
+      </div>
+    </div>
+  )
 }
