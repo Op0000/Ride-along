@@ -15,8 +15,12 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // ✅ Inject Trustpilot script and initialize
+  const scriptId = 'trustpilot-widget-script'
+  const existingScript = document.getElementById(scriptId)
+
+  if (!existingScript) {
     const script = document.createElement('script')
+    script.id = scriptId
     script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
     script.async = true
     script.onload = () => {
@@ -25,7 +29,12 @@ export default function Home() {
       }
     }
     document.body.appendChild(script)
-  }, [])
+  } else {
+    if (window.Trustpilot) {
+      window.Trustpilot.loadFromElement(document.body, true)
+    }
+  }
+}, [])
 
   const fetchRides = async () => {
     try {
