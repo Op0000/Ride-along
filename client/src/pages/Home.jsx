@@ -14,23 +14,20 @@ export default function Home() {
     fetchRides()
   }, [])
 
+  // ✅ Trustpilot widget loader
   useEffect(() => {
-    // 🛠 Inject Trustpilot script only once
-    const existingScript = document.querySelector(
-      'script[src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"]'
-    )
-    if (!existingScript) {
-      const script = document.createElement('script')
-      script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
-      script.async = true
-      script.onload = () => {
-        if (window.Trustpilot) {
-          window.Trustpilot.loadFromElement(document.body, true)
-        }
+    const script = document.createElement('script')
+    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
+    script.async = true
+    script.onload = () => {
+      if (window.Trustpilot) {
+        window.Trustpilot.loadFromElement(document.body, true)
       }
-      document.body.appendChild(script)
-    } else if (window.Trustpilot) {
-      window.Trustpilot.loadFromElement(document.body, true)
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
     }
   }, [])
 
@@ -144,12 +141,7 @@ export default function Home() {
                     )}
                   </div>
                   <div className="text-xs text-zinc-400 mt-2">
-                    <span className="font-semibold">Departure:</span>{' '}
-                    {new Date(ride.departureTime).toLocaleDateString()} at{' '}
-                    {new Date(ride.departureTime).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    <span className="font-semibold">Departure:</span> {new Date(ride.departureTime).toLocaleDateString()} at {new Date(ride.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </div>
                 </Link>
               </motion.li>
@@ -158,26 +150,22 @@ export default function Home() {
         )}
       </motion.div>
 
-      {/* Trustpilot Widget */}
+      {/* ✅ Trustpilot Widget */}
       <div className="mt-10 flex justify-center">
-        <div
-          className="trustpilot-widget"
+        <div className="trustpilot-widget"
           data-locale="en-US"
           data-template-id="56278e9abfbbba0bdcd568bc"
           data-businessunit-id="6884f1eebf3047186ff310e4"
           data-style-height="52px"
-          data-style-width="100%"
-        >
-          <a
-            href="https://www.trustpilot.com/review/ride-along.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-green-400 underline text-center block mt-4"
-          >
+          data-style-width="100%">
+          <a href="https://www.trustpilot.com/review/ride-along.xyz"
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="text-green-400 underline text-center block mt-4">
             Leave a Review on Trustpilot
           </a>
         </div>
       </div>
     </motion.div>
   )
-                                                                           }
+}
