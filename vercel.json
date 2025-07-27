@@ -1,7 +1,12 @@
 {
-  "buildCommand": "cd client && npm install && npm run build",
+  "functions": {
+    "app/api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "buildCommand": "cd client && npm ci && npm run build",
   "outputDirectory": "client/dist",
-  "installCommand": "cd client && npm install",
+  "installCommand": "cd client && npm ci",
   "devCommand": "cd client && npm run dev",
   "rewrites": [
     {
