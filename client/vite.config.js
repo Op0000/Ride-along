@@ -6,6 +6,8 @@ export default defineConfig({
   base: '/',
   plugins: [react(), commonjs()],
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -20,7 +22,7 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 1000,
     target: 'esnext',
-    minify: 'esbuild', // Using esbuild for better compatibility
+    minify: 'esbuild',
     sourcemap: false,
     reportCompressedSize: true
   },
