@@ -417,8 +417,30 @@ export default function Support() {
             </a>
           </div>
         </div>
+<script
+  type="text/javascript"
+  id="zohodeskasap"
+  dangerouslySetInnerHTML={{
+    __html: `
+      var d = document;
+      var s = d.createElement("script");
+      s.type = "text/javascript";
+      s.id = "zohodeskasapscript";
+      s.defer = true;
+      s.src = "https://desk.zoho.in/portal/api/web/asapApp/212189000000276695?orgId=60044434885";
+      var t = d.getElementsByTagName("script")[0];
+      t.parentNode.insertBefore(s, t);
 
-      </div>
-    </div>
-  )
+      window.ZohoDeskAsapReady = function(s) {
+        var e = window.ZohoDeskAsap__asyncalls = window.ZohoDeskAsap__asyncalls || [];
+        window.ZohoDeskAsapReadyStatus
+          ? (s && e.push(s), e.forEach(s => s && s()), window.ZohoDeskAsap__asyncalls = null)
+          : s && e.push(s);
+      };
+    `
+  }}
+/>
+
+</div>
+)
 }
