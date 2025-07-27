@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function Support() {
@@ -19,7 +19,7 @@ export default function Support() {
   const [submitting, setSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState('')
 
-    // Load Trustpilot widget script
+  // Load Trustpilot widget script
   useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
@@ -62,57 +62,57 @@ export default function Support() {
   }, [])
           
   const handleEmailSubmit = async (e) => {
-  e.preventDefault()
-  setSubmitting(true)
-  setSubmitStatus('Sending email...')
+    e.preventDefault()
+    setSubmitting(true)
+    setSubmitStatus('Sending email...')
 
-  try {
-    const res = await fetch('https://ride-along-api.onrender.com/api/support/email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(emailForm)
-    })
+    try {
+      const res = await fetch('https://ride-along-api.onrender.com/api/support/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailForm)
+      })
 
-    const data = await res.json()
-    setSubmitting(false)
-    if (res.ok) {
-      setSubmitStatus(data.message)
-      setEmailForm({ name: '', email: '', subject: '', message: '' })
-    } else {
-      setSubmitStatus(data.error || 'Failed to send email.')
+      const data = await res.json()
+      setSubmitting(false)
+      if (res.ok) {
+        setSubmitStatus(data.message)
+        setEmailForm({ name: '', email: '', subject: '', message: '' })
+      } else {
+        setSubmitStatus(data.error || 'Failed to send email.')
+      }
+    } catch (err) {
+      console.error('Support email error:', err)
+      setSubmitStatus('Something went wrong. Try again later.')
+      setSubmitting(false)
     }
-  } catch (err) {
-    console.error('Support email error:', err)
-    setSubmitStatus('Something went wrong. Try again later.')
-    setSubmitting(false)
-  }
   }
   
   const handleCallbackSubmit = async (e) => {
-  e.preventDefault()
-  setSubmitting(true)
-  setSubmitStatus('Requesting callback...')
+    e.preventDefault()
+    setSubmitting(true)
+    setSubmitStatus('Requesting callback...')
 
-  try {
-    const res = await fetch('https://ride-along-api.onrender.com/api/support/callback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(callbackForm)
-    })
+    try {
+      const res = await fetch('https://ride-along-api.onrender.com/api/support/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(callbackForm)
+      })
 
-    const data = await res.json()
-    setSubmitting(false)
-    if (res.ok) {
-      setSubmitStatus(data.message)
-      setCallbackForm({ name: '', phone: '', preferredTime: '', message: '' })
-    } else {
-      setSubmitStatus(data.error || 'Callback request failed.')
+      const data = await res.json()
+      setSubmitting(false)
+      if (res.ok) {
+        setSubmitStatus(data.message)
+        setCallbackForm({ name: '', phone: '', preferredTime: '', message: '' })
+      } else {
+        setSubmitStatus(data.error || 'Callback request failed.')
+      }
+    } catch (err) {
+      console.error('Callback error:', err)
+      setSubmitStatus('Something went wrong. Try again later.')
+      setSubmitting(false)
     }
-  } catch (err) {
-    console.error('Callback error:', err)
-    setSubmitStatus('Something went wrong. Try again later.')
-    setSubmitting(false)
-  }
   }
 
   return (
@@ -155,7 +155,6 @@ export default function Support() {
             <p className="text-zinc-300 text-lg">Get instant help from our support agents</p>
           </div>
           
-          {/* Mobile-Optimized Chat Container */}
           <div className="w-full bg-zinc-700 rounded-xl border border-zinc-600 overflow-hidden">
             <iframe
               src="https://www.chatbase.co/chatbot-iframe/CmQwdP9jE9EdxA4yRpISi"
@@ -421,6 +420,7 @@ export default function Support() {
             </Link>
           </div>
         </section>
+
         {/* Trustpilot Widget */}
         <section className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-2xl p-6 border border-zinc-700 text-center">
           <h2 className="text-2xl font-bold text-green-400 mb-4">💬 We value your feedback!</h2>
@@ -432,7 +432,7 @@ export default function Support() {
               data-businessunit-id="6884f1eebf3047186ff310e4"
               data-style-height="52px"
               data-style-width="100%">
-              <a href="https://www.trustpilot.com/review/ride-along.xyz" target="_blank" rel="noopener">Trustpilot</a>
+              <a href="https://www.trustpilot.com/review/ride-along.xyz" target="_blank" rel="noopener noreferrer">Trustpilot</a>
             </div>
           </div>
         </section>
