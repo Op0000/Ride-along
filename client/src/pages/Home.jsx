@@ -15,10 +15,16 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // 🛠 Trigger Trustpilot widget script manually (important for React)
-    if (window.Trustpilot) {
-      window.Trustpilot.loadFromElement(document.body, true)
+    // ✅ Inject Trustpilot script and initialize
+    const script = document.createElement('script')
+    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
+    script.async = true
+    script.onload = () => {
+      if (window.Trustpilot) {
+        window.Trustpilot.loadFromElement(document.body, true)
+      }
     }
+    document.body.appendChild(script)
   }, [])
 
   const fetchRides = async () => {
@@ -158,4 +164,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-    }
+         }
