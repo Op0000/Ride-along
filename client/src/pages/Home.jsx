@@ -14,6 +14,13 @@ export default function Home() {
     fetchRides()
   }, [])
 
+  useEffect(() => {
+    // 🛠 Trigger Trustpilot widget script manually (important for React)
+    if (window.Trustpilot) {
+      window.Trustpilot.loadFromElement(document.body, true)
+    }
+  }, [])
+
   const fetchRides = async () => {
     try {
       const res = await fetch(API_URL)
@@ -151,4 +158,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-}
+    }
