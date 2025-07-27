@@ -14,6 +14,17 @@ export default function Home() {
     fetchRides()
   }, [])
 
+  useEffect(() => {
+    // Load Trustpilot widget if available
+    if (window.Trustpilot) {
+      try {
+        window.Trustpilot.loadFromElement(document.body, true)
+      } catch (err) {
+        console.error('Trustpilot widget failed to render:', err)
+      }
+    }
+  }, [])
+
   const fetchRides = async () => {
     try {
       const res = await fetch(API_URL)
@@ -151,4 +162,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-}
+                      }
