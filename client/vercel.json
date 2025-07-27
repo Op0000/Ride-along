@@ -12,6 +12,10 @@
     {
       "source": "/((?!api|_next/static|_next/image|favicon.ico|assets|static).*)",
       "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
