@@ -14,28 +14,6 @@ export default function Home() {
     fetchRides()
   }, [])
 
-  useEffect(() => {
-  const scriptId = 'trustpilot-widget-script'
-  const existingScript = document.getElementById(scriptId)
-
-  if (!existingScript) {
-    const script = document.createElement('script')
-    script.id = scriptId
-    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
-    script.async = true
-    script.onload = () => {
-      if (window.Trustpilot) {
-        window.Trustpilot.loadFromElement(document.body, true)
-      }
-    }
-    document.body.appendChild(script)
-  } else {
-    if (window.Trustpilot) {
-      window.Trustpilot.loadFromElement(document.body, true)
-    }
-  }
-}, [])
-
   const fetchRides = async () => {
     try {
       const res = await fetch(API_URL)
@@ -173,4 +151,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-         }
+}
