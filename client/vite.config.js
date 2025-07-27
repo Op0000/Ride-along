@@ -4,7 +4,9 @@ import commonjs from 'vite-plugin-commonjs'
 
 export default defineConfig({
   plugins: [react(), commonjs()],
+  base: '/', // Ensure base path is set correctly for SPA routing
   build: {
+    outDir: 'dist', // Explicitly set output directory
     rollupOptions: {
       output: {
         manualChunks: {
@@ -19,7 +21,7 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 1000,
     target: 'esnext',
-    minify: 'esbuild', // Using esbuild for better compatibility
+    minify: 'esbuild',
     sourcemap: false,
     reportCompressedSize: true
   },
