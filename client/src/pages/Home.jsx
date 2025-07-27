@@ -14,23 +14,6 @@ export default function Home() {
     fetchRides()
   }, [])
 
-  // ✅ Trustpilot widget loader
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
-    script.async = true
-    script.onload = () => {
-      if (window.Trustpilot) {
-        window.Trustpilot.loadFromElement(document.body, true)
-      }
-    }
-    document.body.appendChild(script)
-
-    return () => {
-      document.body.removeChild(script)
-    }
-  }, [])
-
   const fetchRides = async () => {
     try {
       const res = await fetch(API_URL)
@@ -150,7 +133,7 @@ export default function Home() {
         )}
       </motion.div>
 
-      {/* ✅ Trustpilot Widget */}
+      {/* Trustpilot Widget */}
       <div className="mt-10 flex justify-center">
         <div className="trustpilot-widget"
           data-locale="en-US"
@@ -168,4 +151,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-}
+          }
