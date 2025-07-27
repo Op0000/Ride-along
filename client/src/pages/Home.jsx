@@ -15,13 +15,18 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // Load Trustpilot widget if available
-    if (window.Trustpilot) {
-      try {
+    const script = document.createElement('script')
+    script.src = 'https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js'
+    script.async = true
+    script.onload = () => {
+      if (window.Trustpilot) {
         window.Trustpilot.loadFromElement(document.body, true)
-      } catch (err) {
-        console.error('Trustpilot widget failed to render:', err)
       }
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
     }
   }, [])
 
@@ -162,4 +167,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-                      }
+                }
