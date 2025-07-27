@@ -8,16 +8,10 @@
       }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "missing",
-          "value": "true"
-        }
-      ],
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
