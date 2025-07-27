@@ -1,0 +1,10 @@
+server/
+node_modules/
+.git/
+*.log
+*.md
+.env*
+client/node_modules/
+client/src/
+client/public/
+!client/dist/
