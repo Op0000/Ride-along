@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="trustpilot-one-time-domain-verification-id" content="aa65b7b2-15ce-4f40-821d-854dfe72a744"/>
+    <meta name="trustpilot-one-time-domain-verification-id" content="aa65b7b2-15ce-4f40-821d-854dfe72a744" />
 
     <!-- ✅ AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2739284387226718"
@@ -39,54 +39,64 @@
     <meta name="apple-mobile-web-app-title" content="Ride Along" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- ✅ Custom CSS for Zoho Widget -->
     <style>
-  #zohodesk-asap-web-widget {
-    left: 20px !important;
-    right: auto !important;
-    bottom: 20px !important;
-  }
+      #zohodesk-asap-web-widget {
+        left: 20px !important;
+        right: auto !important;
+        bottom: 20px !important;
+        position: fixed !important;
+        z-index: 99999 !important;
+      }
     </style>
 
     <!-- ✅ Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Ride Along",
-      "url": "https://ride-along.xyz",
-      "logo": "https://ride-along.xyz/logo.png",
-      "description": "Ride Along is a smart carpooling and ride-sharing platform built for students and citizens of Uttar Pradesh. Safe, reliable, and totally free.",
-      "sameAs": [
-        "https://www.instagram.com/ridealongapp",
-        "https://twitter.com/ridealongapp"
-      ],
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "contactType": "Customer Support",
-        "email": "hello@ride-along.xyz",
-        "url": "https://ride-along.xyz/support"
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Ride Along",
+        "url": "https://ride-along.xyz",
+        "logo": "https://ride-along.xyz/logo.png",
+        "description": "Ride Along is a smart carpooling and ride-sharing platform built for students and citizens of Uttar Pradesh. Safe, reliable, and totally free.",
+        "sameAs": [
+          "https://www.instagram.com/ridealongapp",
+          "https://twitter.com/ridealongapp"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "Customer Support",
+          "email": "hello@ride-along.xyz",
+          "url": "https://ride-along.xyz/support"
+        }
       }
-    }
     </script>
   </head>
+
   <body>
     <div id="root"></div>
-    
-    <!-- ✅ React/Vite App -->
+
+    <!-- ✅ React App Entry -->
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- ✅ Zoho ASAP Widget -->
-    <script type="text/javascript" id="zohodeskasapscript" defer
+    <!-- ✅ Zoho Desk ASAP Widget Script -->
+    <script
+      type="text/javascript"
+      id="zohodeskasapscript"
+      defer
       src="https://desk.zoho.in/portal/api/web/asapApp/212189000000276695?orgId=60044434885">
     </script>
 
-    <!-- ✅ Optional: Auto-fill logged-in user (edit this if needed) -->
+    <!-- ✅ Optional: Auto-assign user info to Zoho if available -->
     <script>
-      window.ZohoDeskAsapReady = function() {
-        window.ZohoDeskAsap.setUser({
-          name: userData.name,
-          email: userData.email
-        });
+      window.ZohoDeskAsapReady = function () {
+        const userData = JSON.parse(localStorage.getItem('rideAlongUser')) || {};
+        if (userData.name && userData.email) {
+          window.ZohoDeskAsap.setUser({
+            name: userData.name,
+            email: userData.email
+          });
+        }
       };
     </script>
   </body>
