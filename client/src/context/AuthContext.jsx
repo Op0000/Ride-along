@@ -27,7 +27,12 @@ export const AuthProvider = ({ children }) => {
             // Store in localStorage for your booking system
             localStorage.setItem('uid', firebaseUser.uid)
             localStorage.setItem('token', token)
-            
+
+            // ✅ Store name & email for ZohoDesk ASAP
+            const name = firebaseUser.displayName || 'Ride Along User'
+            const email = firebaseUser.email || ''
+            localStorage.setItem('rideAlongUser', JSON.stringify({ name, email }))
+
             setUser(firebaseUser)
           } catch (error) {
             console.error('Error getting ID token:', error)
@@ -37,6 +42,10 @@ export const AuthProvider = ({ children }) => {
           // Clear localStorage when user logs out
           localStorage.removeItem('uid')
           localStorage.removeItem('token')
+          
+          // ✅ Clear user info for Zoho
+          localStorage.removeItem('rideAlongUser')
+
           setUser(null)
         }
         setLoading(false)
@@ -70,4 +79,3 @@ export const AuthProvider = ({ children }) => {
 }
 
 export const useAuth = () => useContext(AuthContext)
-  
