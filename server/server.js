@@ -27,15 +27,19 @@ mongoose.connect(process.env.MONGO_URI, {
     })
 
     // 🔁 Cron Job: Delete expired rides every 10 minutes
-    cron.schedule('*/10 * * * *', async () => {
-      const now = new Date()
-      try {
-        const deleted = await Ride.deleteMany({ departureTime: { $lt: now } })
-        console.log(`🗑️ Deleted ${deleted.deletedCount} expired rides`)
-      } catch (err) {
-        console.error('❌ Error deleting expired rides:', err.message)
-      }
-    })
+cron.schedule('*/10 * * * *', async () => {
+  const now = new Date()
+  try {
+    const deleted = await Ride.deleteMany({ departureTime: { $lt: now } })
+    console.log(`🗑️ Deleted ${deleted.deletedCount} expired rides`)
+
+    // 🟢 Ping Better Stack (Heartbeat)
+    await fetch('https://uptime.betterstack.com/api/v1/heartbeat/YKUZeZrCpWUGW8VPf9aQPKPc')
+    console.log('📡 Better Uptime heartbeat pinged successfully')
+  } catch (err) {
+    console.error('❌ Error deleting expired rides:', err.message)
+  }
+})
 
   })
   .catch(err => console.error('❌ MongoDB connection failed:', err))
