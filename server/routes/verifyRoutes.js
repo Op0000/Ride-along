@@ -1,8 +1,9 @@
-//routes/verifyRoutes.js
-const express = require("express");
+// routes/verifyRoutes.js
+import express from "express";
+import { verifyFirebaseToken } from "../middlewares/authMiddleware.js";
+import User from "../models/User.js";
+
 const router = express.Router();
-const verifyFirebaseToken = require("../middlewares/authMiddleware").verifyFirebaseToken;
-const User = require("../models/User");
 
 // POST /verify/submit
 router.post("/submit", verifyFirebaseToken, async (req, res) => {
@@ -39,4 +40,4 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
