@@ -6,7 +6,7 @@ import {
   browserLocalPersistence,
   GoogleAuthProvider
 } from 'firebase/auth'
-import { get storage } from 'firebase/storage'
+import { getStorage } from 'firebase/storage'
 
 // ✅ Your Firebase config
 const firebaseConfig = {
@@ -25,5 +25,6 @@ export const auth = getAuth(app)
 // ✅ Set persistence (browser local storage)
 setPersistence(auth, browserLocalPersistence).catch(console.error)
 
+export const storage = getStorage(app)
 // ✅ Optional: export provider if needed
 export const provider = new GoogleAuthProvider()
