@@ -18,6 +18,7 @@ app.use('/api/bookings', (req, res, next) => {
   next()
 }) // Debug
 // Routes
+app.use("/api/verify", require("./routes/verifyRoutes"));
 app.use('/api/support', supportRoutes)
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
