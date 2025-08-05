@@ -6,6 +6,7 @@ import userRoutes from './routes/users.js'
 import bookingRoutes from './routes/bookingRoutes.js'
 import liveLocationRoutes from './routes/liveLocationRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
+import uploadRoutes from './routes/upload.js'
 
 const app = express()
 
@@ -25,4 +26,5 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/live-location', liveLocationRoutes)
+app.use('/api/upload', uploadRoutes)
 export default app
