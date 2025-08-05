@@ -16,6 +16,7 @@ import SearchRides from './pages/SearchRide.jsx'
 import RideDetail from './pages/RideDetail.jsx'
 import Profile from './pages/Profile.jsx'
 import SOS from './pages/SOS.jsx'
+import DriverVerificationForm from "./components/DriverVerificationForm";
 
 // ✅ Import your legal pages
 import Terms from './pages/Terms.jsx'
@@ -521,6 +522,7 @@ function App() {
       </nav>
 
       <Routes>
+        <Route path="/driver-verification" element={<DriverVerificationForm />} />
         <Route path="/" element={<Home />} />
         <Route path="/post" element={<PostRide />} />
         <Route path="/search" element={<SearchRides />} />
