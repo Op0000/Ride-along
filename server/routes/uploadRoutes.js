@@ -29,7 +29,7 @@ const drive = google.drive({ version: 'v3', auth: oAuth2Client })
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
     const fileMetadata = {
-      name: req.file.originalname
+      name: req.file.originalname,
       parents: ['1axpMSq_WKfOxGpgQr-aDpY2BDkJw67j0']
     }
 
