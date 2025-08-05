@@ -6,7 +6,7 @@ import userRoutes from './routes/users.js'
 import bookingRoutes from './routes/bookingRoutes.js'
 import liveLocationRoutes from './routes/liveLocationRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
-import uploadRoutes from './routes/upload.js'
+import uploadRoutes from './routes/uploadRoutes.js'
 
 const app = express()
 
