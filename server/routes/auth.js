@@ -1,7 +1,7 @@
 //Secure Sign-in
 import express from 'express'
 import admin from '../firebase.js'
-import User from '../models/user.js' // assuming userSchema is exported from models/user.js
+import User from '../models/User.js' // assuming userSchema is exported from models/user.js
 
 const router = express.Router()
 
