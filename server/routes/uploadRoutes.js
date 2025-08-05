@@ -13,7 +13,7 @@ const upload = multer({ dest: 'uploads/' })
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
 const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH))
 
-const { client_secret, client_id, redirect_uris } = credentials.installed
+const { client_secret, client_id, redirect_uris } = credentials.web;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
 
 // Set access token manually (you must already have this)
