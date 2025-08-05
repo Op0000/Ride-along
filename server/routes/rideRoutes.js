@@ -2,18 +2,29 @@ import express from 'express'
 import Ride from '../models/Ride.js'
 import Booking from '../models/Booking.js'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
+import User from '../models/User.js'
 
 const router = express.Router()
 
-// ✅ POST /api/rides — Create a new ride (protected route)
+// ✅ POST /api/rides — Create a new ride (protected + driver verification)
 router.post('/', verifyFirebaseToken, async (req, res) => {
   try {
-    const user = req.user  // Decoded from Firebase token
+    const decodedUser = req.user  // From Firebase token
+    const dbUser = await User.findOne({ uid: decodedUser.uid })
+
+    if (!dbUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    // ⛔ Block ride posting if not a verified driver
+    if (!dbUser.driverVerification?.isVerified) {
+      return res.status(403).json({ error: 'Driver verification required to post a ride.' })
+    }
 
     const ride = new Ride({
       ...req.body,
-      userId: user.uid,
-      userEmail: user.email
+      userId: dbUser.uid,
+      userEmail: dbUser.email
     })
 
     await ride.save()
