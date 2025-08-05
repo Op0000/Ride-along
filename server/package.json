@@ -13,6 +13,8 @@
     "firebase-admin": "^11.11.1",
     "mongoose": "^8.4.0",
     "node-cron": "^3.0.3",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "googleapis": "^127.0.0",
+    "mime-types": "^2.1.35"
   }
 }
