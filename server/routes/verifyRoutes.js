@@ -1,27 +1,41 @@
-// routes/verifyRoutes.js
+//routes/verifyRoutes.js
 const express = require("express");
 const router = express.Router();
-const verifyFirebaseToken = require("../middlewares/firebaseAuth");
+const verifyFirebaseToken = require("../middlewares/authMiddleware").verifyFirebaseToken;
 const User = require("../models/User");
 
+// POST /verify/submit
 router.post("/submit", verifyFirebaseToken, async (req, res) => {
   const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = req.body;
+
+  if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
+    return res.status(400).json({ error: "All document URLs must be provided." });
+  }
+
   try {
     const user = await User.findOne({ firebaseUID: req.user.uid });
 
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     user.driverVerification = {
-      documents: { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl },
+      documents: {
+        idProofUrl,
+        licenseUrl,
+        rcBookUrl,
+        profilePhotoUrl,
+      },
       isVerified: false,
       submittedAt: new Date(),
     };
 
     await user.save();
-    res.json({ message: "Submitted successfully!" });
+
+    res.status(200).json({ message: "Verification documents submitted successfully." });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Driver verification error:", err);
+    res.status(500).json({ error: "Server error while submitting documents." });
   }
 });
 
