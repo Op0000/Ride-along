@@ -6,6 +6,7 @@ import {
   browserLocalPersistence,
   GoogleAuthProvider
 } from 'firebase/auth'
+import { get storage } from 'firebase/storage'
 
 // ✅ Your Firebase config
 const firebaseConfig = {
