@@ -7,6 +7,7 @@ import bookingRoutes from './routes/bookingRoutes.js'
 import liveLocationRoutes from './routes/liveLocationRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
+import verifyRoutes from './routes/verifyRoutes.js' // ✅ Fixed here
 
 const app = express()
 
@@ -18,8 +19,9 @@ app.use('/api/bookings', (req, res, next) => {
   console.log('[BOOKING PAYLOAD]', req.body)
   next()
 }) // Debug
+
 // Routes
-app.use("/api/verify", require("./routes/verifyRoutes"));
+app.use('/api/verify', verifyRoutes) // ✅ Converted to ES module
 app.use('/api/support', supportRoutes)
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
@@ -27,4 +29,5 @@ app.use('/api/users', userRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/live-location', liveLocationRoutes)
 app.use('/api/upload', uploadRoutes)
+
 export default app
