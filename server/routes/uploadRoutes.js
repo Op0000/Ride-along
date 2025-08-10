@@ -1,62 +1,70 @@
-import express from 'express'
-import multer from 'multer'
-import fs from 'fs'
-import path from 'path'
-import { google } from 'googleapis'
+// routes/uploadRoutes.js
+import express from "express";
+import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
-const router = express.Router()
+const router = express.Router();
 
-// Setup multer for file uploads
-const upload = multer({ dest: 'uploads/' })
-
-// Load OAuth2 credentials
-const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json')
-const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH))
-
-const { client_secret, client_id, redirect_uris } = credentials.web;
-const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-
-// Set access token manually (you must already have this)
-oAuth2Client.setCredentials({
-  access_token: process.env.GOOGLE_ACCESS_TOKEN,
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
-})
-
-// Drive instance
-const drive = google.drive({ version: 'v3', auth: oAuth2Client })
-
-// Upload route
-router.post('/upload', upload.single('file'), async (req, res) => {
-  try {
-    const fileMetadata = {
-      name: req.file.originalname,
-      parents: ['1axpMSq_WKfOxGpgQr-aDpY2BDkJw67j0']
-    }
-
-    const media = {
-      mimeType: req.file.mimetype,
-      body: fs.createReadStream(req.file.path)
-    }
-
-    const response = await drive.files.create({
-      requestBody: fileMetadata,
-      media: media,
-      fields: 'id, name, webViewLink'
-    })
-
-    // Delete local temp file
-    fs.unlinkSync(req.file.path)
-
-    res.status(200).json({
-      success: true,
-      fileId: response.data.id,
-      fileName: response.data.name,
-      link: response.data.webViewLink
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ success: false, message: 'Upload failed' })
+// Configure Cloudinary storage for multer
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "driver_verification",
+    allowed_formats: ["jpg", "png", "jpeg", "pdf"],
+    resource_type: "auto"
   }
-})
+});
 
-export default router
+const upload = multer({ storage });
+
+// Helper to extract url (multer-storage-cloudinary stores final url in file.path)
+const fileUrl = (file) => file?.path || file?.url || file?.secure_url || null;
+
+/**
+ * POST /api/upload
+ * Single file upload. Form field: file
+ * Response: { success:true, url }
+ */
+router.post("/", upload.single("file"), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
+  return res.json({ success: true, url: fileUrl(req.file) });
+});
+
+/**
+ * POST /api/upload/multi
+ * Multi-file upload (idProof, license, rcBook, profilePhoto)
+ * Use form-data with those 4 fields.
+ * Response: { success:true, idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl }
+ */
+router.post("/multi", upload.fields([
+  { name: "idProof", maxCount: 1 },
+  { name: "license", maxCount: 1 },
+  { name: "rcBook", maxCount: 1 },
+  { name: "profilePhoto", maxCount: 1 }
+]), (req, res) => {
+  try {
+    const files = req.files || {};
+    const idProofUrl = fileUrl(files.idProof?.[0]);
+    const licenseUrl = fileUrl(files.license?.[0]);
+    const rcBookUrl = fileUrl(files.rcBook?.[0]);
+    const profilePhotoUrl = fileUrl(files.profilePhoto?.[0]);
+
+    if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
+      return res.status(400).json({ success: false, error: "All 4 files must be uploaded" });
+    }
+
+    return res.json({
+      success: true,
+      idProofUrl,
+      licenseUrl,
+      rcBookUrl,
+      profilePhotoUrl
+    });
+  } catch (err) {
+    console.error("Upload multi error:", err);
+    return res.status(500).json({ success: false, error: "Upload failed" });
+  }
+});
+
+export default router;
