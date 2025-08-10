@@ -5,21 +5,28 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// POST /verify/submit
+/**
+ * @route POST /api/verify/submit
+ * @desc Submit driver verification documents
+ * @access Private (Firebase Auth required)
+ */
 router.post("/submit", verifyFirebaseToken, async (req, res) => {
-  const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = req.body;
-
-  if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
-    return res.status(400).json({ error: "All document URLs must be provided." });
-  }
-
   try {
+    const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = req.body;
+
+    // Validate inputs
+    if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
+      return res.status(400).json({ error: "All document URLs must be provided." });
+    }
+
+    // Find user by Firebase UID
     const user = await User.findOne({ uid: req.user.uid });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "User not found." });
     }
 
+    // Update verification details
     user.driverVerification = {
       documents: {
         idProofUrl,
@@ -27,16 +34,19 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
         rcBookUrl,
         profilePhotoUrl,
       },
-      isVerified: false,
+      isVerified: false, // Mark as pending verification
       submittedAt: new Date(),
     };
 
     await user.save();
 
-    res.status(200).json({ message: "Verification documents submitted successfully." });
+    return res.status(200).json({
+      message: "Verification documents submitted successfully.",
+      driverVerification: user.driverVerification,
+    });
   } catch (err) {
-    console.error("Driver verification error:", err);
-    res.status(500).json({ error: "Server error while submitting documents." });
+    console.error("❌ Driver verification error:", err);
+    return res.status(500).json({ error: "Server error while submitting documents." });
   }
 });
 
