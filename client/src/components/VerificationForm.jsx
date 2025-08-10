@@ -77,7 +77,7 @@ export default function VerificationForm() {
       setPreviews({});
     } catch (err) {
       console.error(err);
-      alert("❌ Error submitting verification");
+      alert(`❌ Error: ${err.response?.data?.message || err.message}`);
     } finally {
       setLoading(false);
       setProgress(0);
