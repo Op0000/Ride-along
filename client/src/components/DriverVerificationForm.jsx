@@ -1,117 +1,87 @@
 import React, { useState } from "react";
+import axios from "axios";
 
-const DriverVerificationForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    licenseNumber: "",
-    vehicleNumber: "",
-    documents: [],
+export default function VerificationForm() {
+  const [files, setFiles] = useState({
+    idProof: null,
+    license: null,
+    rcBook: null,
+    profilePhoto: null,
   });
 
-  const [uploading, setUploading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, documents: e.target.files });
+    const { name, files: selectedFiles } = e.target;
+    setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] }));
+  };
+
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await axios.post("/api/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.url; // backend should return { url: "https://..." }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setUploading(true);
-    setMessage("");
+    setLoading(true);
 
     try {
-      const data = new FormData();
-      data.append("name", formData.name);
-      data.append("licenseNumber", formData.licenseNumber);
-      data.append("vehicleNumber", formData.vehicleNumber);
+      // 1️⃣ Upload files
+      const idProofUrl = await uploadFile(files.idProof);
+      const licenseUrl = await uploadFile(files.license);
+      const rcBookUrl = await uploadFile(files.rcBook);
+      const profilePhotoUrl = await uploadFile(files.profilePhoto);
 
-      for (let i = 0; i < formData.documents.length; i++) {
-        data.append("documents", formData.documents[i]);
-      }
+      // 2️⃣ Submit verification
+      await axios.post(
+        "/api/verify/submit",
+        { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Firebase ID token
+          },
+        }
+      );
 
-      const res = await fetch("/api/verify/submit", {
-        method: "POST",
-        body: data,
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        setMessage("✅ Documents uploaded successfully!");
-      } else {
-        setMessage(`❌ Error: ${result.error || "Upload failed"}`);
-      }
-    } catch (error) {
-      setMessage("❌ Network error, please try again.");
+      alert("✅ Documents submitted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error submitting verification");
+    } finally {
+      setLoading(false);
     }
-
-    setUploading(false);
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Driver Verification
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          required
-        />
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        maxWidth: "400px",
+        margin: "auto",
+      }}
+    >
+      <h2>Driver Verification</h2>
 
-        <input
-          type="text"
-          name="licenseNumber"
-          placeholder="License Number"
-          value={formData.licenseNumber}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          required
-        />
+      <input type="file" name="idProof" onChange={handleFileChange} required />
+      <input type="file" name="license" onChange={handleFileChange} required />
+      <input type="file" name="rcBook" onChange={handleFileChange} required />
+      <input
+        type="file"
+        name="profilePhoto"
+        onChange={handleFileChange}
+        required
+      />
 
-        <input
-          type="text"
-          name="vehicleNumber"
-          placeholder="Vehicle Number"
-          value={formData.vehicleNumber}
-          onChange={handleChange}
-          className="w-full border rounded p-2"
-          required
-        />
-
-        <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          className="w-full border rounded p-2"
-          accept="image/*,application/pdf"
-          required
-        />
-
-        <button
-          type="submit"
-          disabled={uploading}
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
-          {uploading ? "Uploading..." : "Submit Verification"}
-        </button>
-      </form>
-
-      {message && (
-        <p className="mt-4 text-center text-sm font-semibold">{message}</p>
-      )}
-    </div>
+      <button type="submit" disabled={loading}>
+        {loading ? "Uploading..." : "Submit Verification"}
+      </button>
+    </form>
   );
-};
-
-export default DriverVerificationForm;
+}
