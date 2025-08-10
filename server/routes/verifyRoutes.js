@@ -14,7 +14,7 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ firebaseUID: req.user.uid });
+    const user = await User.findOne({ uid: req.user.uid });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
