@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAuth } from 'firebase/auth'
+import VerificationForm from '../components/VerificationForm' // ✅ make sure this path matches your project
 
 export default function Profile() {
   const auth = getAuth()
@@ -10,7 +11,8 @@ export default function Profile() {
     age: '',
     gender: '',
     phone: '',
-    email: ''
+    email: '',
+    driverVerification: null // ✅ added
   })
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
@@ -89,7 +91,7 @@ export default function Profile() {
     if (!details.age || details.age < 1) errs.age = 'Enter a valid age'
     if (!details.gender) errs.gender = 'Select your gender'
     if (!/^\d{10}$/.test(details.phone)) errs.phone = 'Enter a 10-digit phone number'
-    if (!/^\S+@\S+.\S+$/.test(details.email)) errs.email = 'Invalid email format'
+    if (!/^\S+@\S+\.\S+$/.test(details.email)) errs.email = 'Invalid email format'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -137,7 +139,6 @@ export default function Profile() {
       })
 
       if (res.ok) {
-        // Remove the booking from the list
         setBookedRides(prev => prev.filter(booking => booking._id !== bookingId))
         alert('Booking cancelled successfully!')
       } else {
@@ -168,7 +169,6 @@ export default function Profile() {
       })
 
       if (res.ok) {
-        // Remove the ride from the list
         setPostedRides(prev => prev.filter(ride => ride._id !== rideId))
         alert('Ride deleted successfully!')
       } else {
@@ -212,15 +212,29 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-4 sm:p-6">
       <h1 className="text-3xl font-bold text-purple-400 mb-6 text-center">Your Profile</h1>
 
+      {/* ✅ Added verification status */}
+      <div className="max-w-2xl mx-auto mb-6 p-4 bg-zinc-800 rounded-lg shadow border border-zinc-700">
+        {details.driverVerification?.isVerified ? (
+          <p className="text-green-400 font-semibold">
+            ✅ You are verified! You can post rides.
+          </p>
+        ) : (
+          <>
+            <p className="text-red-400 font-semibold mb-3">
+              ⚠️ You are not verified. Please complete verification below.
+            </p>
+            <VerificationForm />
+          </>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
         
         {/* Profile Details Column */}
         <div className="lg:col-span-1">
           <div className="bg-zinc-800 p-4 sm:p-6 rounded-2xl shadow-2xl border border-zinc-700">
             <h2 className="text-xl font-semibold text-purple-300 mb-4">Profile Details</h2>
-            
             <div className="space-y-4">
-              {/* UID - non-editable */}
               <div>
                 <label className="block text-sm mb-1 text-purple-300">UID</label>
                 <input
@@ -231,8 +245,6 @@ export default function Profile() {
                   className="w-full px-3 py-2 rounded-lg bg-zinc-700 text-white border border-zinc-600 opacity-80 cursor-not-allowed text-sm"
                 />
               </div>
-
-              {/* Editable fields */}
               {['name', 'age', 'phone', 'email'].map((field) => (
                 <div key={field}>
                   <label className="block text-sm mb-1 capitalize text-purple-300">{field}</label>
@@ -248,8 +260,6 @@ export default function Profile() {
                   {errors[field] && <p className="text-red-400 text-xs mt-1">{errors[field]}</p>}
                 </div>
               ))}
-
-              {/* Gender dropdown */}
               <div>
                 <label className="block text-sm mb-1 text-purple-300">Gender</label>
                 <select
@@ -267,16 +277,12 @@ export default function Profile() {
                 </select>
                 {errors.gender && <p className="text-red-400 text-xs mt-1">{errors.gender}</p>}
               </div>
-
-              {/* Save button */}
               <button
                 onClick={handleSave}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition duration-200 ease-in-out text-sm"
               >
                 Save Changes
               </button>
-
-              {/* Save confirmation */}
               {saved && (
                 <p className="text-green-400 text-center animate-pulse mt-2 text-sm">
                   ✅ Profile updated successfully
@@ -290,7 +296,6 @@ export default function Profile() {
         <div className="lg:col-span-1">
           <div className="bg-zinc-800 p-4 sm:p-6 rounded-2xl shadow-2xl border border-zinc-700">
             <h2 className="text-xl font-semibold text-blue-300 mb-4">My Bookings ({bookedRides.length})</h2>
-            
             {bookingsLoading ? (
               <div className="text-center text-gray-400">Loading bookings...</div>
             ) : bookedRides.length === 0 ? (
@@ -352,7 +357,6 @@ export default function Profile() {
         <div className="lg:col-span-1">
           <div className="bg-zinc-800 p-4 sm:p-6 rounded-2xl shadow-2xl border border-zinc-700">
             <h2 className="text-xl font-semibold text-green-300 mb-4">My Posted Rides ({postedRides.length})</h2>
-            
             {ridesLoading ? (
               <div className="text-center text-gray-400">Loading rides...</div>
             ) : postedRides.length === 0 ? (
@@ -402,4 +406,4 @@ export default function Profile() {
       </div>
     </div>
   )
-}
+  }
