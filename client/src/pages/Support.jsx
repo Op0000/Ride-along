@@ -143,7 +143,7 @@ export default function Support() {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-center">
             <div className="text-4xl mb-3">✉️</div>
             <h3 className="text-xl font-bold mb-2">Email Support</h3>
-            <p className="text-blue-100 mb-2">help.trenddash@gmail.com</p>
+            <p className="text-blue-100 mb-2">support@ride-along.xyz</p>
             <p className="text-blue-200 text-sm">Response within 24 hours</p>
           </div>
         </div>
@@ -405,9 +405,9 @@ export default function Support() {
               to="/terms"
               className="bg-zinc-700 p-6 rounded-xl text-center hover:bg-zinc-600 transition duration-300 border border-zinc-600"
             >
-              <div className="text-3xl mb-3">📜</div>
-              <h3 className="text-lg font-semibold text-white mb-2">Terms of Service</h3>
-              <p className="text-zinc-300 text-sm">Service terms and conditions</p>
+              <div className="text-3xl mb-3">📡</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Status & Uptime</h3>
+              <p className="text-zinc-300 text-sm">Current Status of all the services</p>
             </Link>
             
             <Link 
@@ -417,6 +417,15 @@ export default function Support() {
               <div className="text-3xl mb-3">💸</div>
               <h3 className="text-lg font-semibold text-white mb-2">Refund Policy</h3>
               <p className="text-zinc-300 text-sm">Cancellation and refunds</p>
+            </Link>
+
+            <Link 
+              to="https://status.ride-along.xyz"
+              className="bg-zinc-700 p-6 rounded-xl text-center hover:bg-zinc-600 transition duration-300 border border-zinc-600"
+            >
+              <div className="text-3xl mb-3">📜</div>
+              <h3 className="text-lg font-semibold text-white mb-2">Terms of Service</h3>
+              <p className="text-zinc-300 text-sm">Service terms and conditions</p>
             </Link>
           </div>
         </section>
