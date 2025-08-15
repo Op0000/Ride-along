@@ -41,8 +41,8 @@ export default function Footer() {
   ]
 
   const socialLinks = [
-    { name: "Support", url: "mailto:help.trenddash@gmail.com", icon: "📧" },
-    { name: "Feedback", url: "mailto:help.trenddash@gmail.com", icon: "💬" }
+    { name: "Support", url: "mailto:support@ride-along.xyz", icon: "📧" },
+    { name: "Feedback", url: "mailto:support@ride-along.xyz", icon: "💬" }
   ]
 
   const fadeInUp = {
@@ -210,10 +210,10 @@ export default function Footer() {
                   <div>
                     <p className="font-medium">Email Support</p>
                     <a 
-                      href="mailto:help.trenddash@gmail.com" 
+                      href="mailto:support@ride-along.xyz" 
                       className="text-purple-400 hover:text-purple-300 transition duration-200"
                     >
-                      help.trenddash@gmail.com
+                      support@ride-along.xyz
                     </a>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export default function Footer() {
                   <div>
                     <p className="font-medium">Get Help</p>
                     <a 
-                      href="mailto:help.trenddash@gmail.com" 
+                      href="mailto:support@ride-along.xyz" 
                       className="text-purple-400 hover:text-purple-300 transition duration-200"
                     >
                       Contact Support
