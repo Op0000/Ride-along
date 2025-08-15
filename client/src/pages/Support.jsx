@@ -402,7 +402,7 @@ export default function Support() {
             </Link>
             
             <Link 
-              to="/terms"
+              to="https://status.ride-along.xyz"
               className="bg-zinc-700 p-6 rounded-xl text-center hover:bg-zinc-600 transition duration-300 border border-zinc-600"
             >
               <div className="text-3xl mb-3">📡</div>
@@ -420,7 +420,7 @@ export default function Support() {
             </Link>
 
             <Link 
-              to="https://status.ride-along.xyz"
+              to="/terms"
               className="bg-zinc-700 p-6 rounded-xl text-center hover:bg-zinc-600 transition duration-300 border border-zinc-600"
             >
               <div className="text-3xl mb-3">📜</div>
