@@ -10,10 +10,26 @@ const userSchema = new mongoose.Schema({
 
   driverVerification: {
     documents: {
-      idProofUrl: { type: String },
-      licenseUrl: { type: String },
-      rcBookUrl: { type: String },
-      profilePhotoUrl: { type: String },
+      idProof: {
+        data: { type: String }, // base64 string
+        contentType: { type: String }, // mime type
+        filename: { type: String }
+      },
+      license: {
+        data: { type: String },
+        contentType: { type: String },
+        filename: { type: String }
+      },
+      rcBook: {
+        data: { type: String },
+        contentType: { type: String },
+        filename: { type: String }
+      },
+      profilePhoto: {
+        data: { type: String },
+        contentType: { type: String },
+        filename: { type: String }
+      }
     },
     isVerified: { type: Boolean, default: false },
     submittedAt: { type: Date },

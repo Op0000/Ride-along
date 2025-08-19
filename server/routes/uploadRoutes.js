@@ -1,23 +1,11 @@
-// routes/uploadRoutes.js
+
 import express from "express";
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../cloudinary.js";
 
 const router = express.Router();
 
-// Configure Cloudinary storage for multer
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: process.env.CLOUDINARY_FOLDER || "driver_verification",
-    allowed_formats: ["jpg", "png", "jpeg", "pdf"],
-    resource_type: "auto",
-    transformation: [
-      { width: 1000, height: 1000, crop: "limit", quality: "auto" }
-    ]
-  }
-});
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
 
 // File filter for validation
 const fileFilter = (req, file, cb) => {
@@ -37,20 +25,29 @@ const upload = multer({
   }
 });
 
-// Helper to extract url (multer-storage-cloudinary stores final url in file.path)
-const fileUrl = (file) => file?.path || file?.url || file?.secure_url || null;
+// Helper function to convert buffer to base64
+const bufferToBase64 = (buffer) => {
+  return buffer.toString('base64');
+};
 
 /**
  * POST /api/upload
  * Single file upload. Form field: file
- * Response: { success:true, url }
+ * Response: { success:true, fileData }
  */
 router.post("/", upload.single("file"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, error: "No file uploaded" });
     }
-    return res.json({ success: true, url: fileUrl(req.file) });
+
+    const fileData = {
+      data: bufferToBase64(req.file.buffer),
+      contentType: req.file.mimetype,
+      filename: req.file.originalname
+    };
+
+    return res.json({ success: true, fileData });
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ 
@@ -65,7 +62,7 @@ router.post("/", upload.single("file"), (req, res) => {
  * POST /api/upload/multi
  * Multi-file upload (idProof, license, rcBook, profilePhoto)
  * Use form-data with those 4 fields.
- * Response: { success:true, idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl }
+ * Response: { success:true, idProof, license, rcBook, profilePhoto }
  */
 router.post("/multi", upload.fields([
   { name: "idProof", maxCount: 1 },
@@ -87,25 +84,21 @@ router.post("/multi", upload.fields([
       });
     }
 
-    const idProofUrl = fileUrl(files.idProof?.[0]);
-    const licenseUrl = fileUrl(files.license?.[0]);
-    const rcBookUrl = fileUrl(files.rcBook?.[0]);
-    const profilePhotoUrl = fileUrl(files.profilePhoto?.[0]);
+    const result = {};
 
-    // Double-check all URLs are valid
-    if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
-      return res.status(500).json({ 
-        success: false, 
-        error: "Failed to process uploaded files" 
-      });
-    }
+    // Process each file
+    requiredFields.forEach(field => {
+      const file = files[field][0];
+      result[field] = {
+        data: bufferToBase64(file.buffer),
+        contentType: file.mimetype,
+        filename: file.originalname
+      };
+    });
 
     return res.json({
       success: true,
-      idProofUrl,
-      licenseUrl,
-      rcBookUrl,
-      profilePhotoUrl
+      ...result
     });
   } catch (err) {
     console.error("Upload multi error:", err);

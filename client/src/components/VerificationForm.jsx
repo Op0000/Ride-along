@@ -73,6 +73,9 @@ export default function VerificationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Mock user object for demonstration purposes, replace with actual user context
+    const user = { uid: "mockUserId" }; 
+
     // Validate all files are selected
     const requiredFiles = ['idProof', 'license', 'rcBook', 'profilePhoto'];
     const missingFiles = requiredFiles.filter(key => !files[key]);
@@ -86,25 +89,52 @@ export default function VerificationForm() {
     setProgress(0);
 
     try {
-      // Upload all files at once
-      const uploadResult = await uploadAllFiles();
+      // Create FormData for file uploads
+      const formData = new FormData();
+      formData.append('idProof', files.idProof);
+      formData.append('license', files.license);
+      formData.append('rcBook', files.rcBook);
+      formData.append('profilePhoto', files.profilePhoto);
+
+      // Upload files to get file data
+      const uploadResponse = await fetch('/api/upload/multi', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        throw new Error(`Upload failed with status: ${uploadResponse.status}. ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
 
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Upload failed');
       }
 
-      const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = uploadResult;
+      // Submit verification with file data
+      const verificationData = {
+        uid: user.uid,
+        idProof: uploadResult.idProof,
+        license: uploadResult.license,
+        rcBook: uploadResult.rcBook,
+        profilePhoto: uploadResult.profilePhoto,
+      };
 
-      // Send to verification API
-      await axios.post(
-        "/api/verify/submit",
-        { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await fetch('/api/verify/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(verificationData),
+      });
+
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Verification submission failed with status: ${response.status}. ${errorText}`);
+      }
 
       alert("✅ Documents submitted successfully! Your verification is pending review.");
 
@@ -125,7 +155,7 @@ export default function VerificationForm() {
       console.error('Verification submission error:', err);
 
       let errorMessage = 'Unknown error occurred';
-      
+
       // Handle different types of errors
       if (typeof err === 'string') {
         errorMessage = err;

@@ -71,4 +71,42 @@ router.get('/:uid', async (req, res) => {
   }
 })
 
+// Get document image by UID and document type
+router.get('/:uid/document/:docType', async (req, res) => {
+  try {
+    const { uid, docType } = req.params;
+    
+    const validDocTypes = ['idProof', 'license', 'rcBook', 'profilePhoto'];
+    if (!validDocTypes.includes(docType)) {
+      return res.status(400).json({ error: 'Invalid document type' });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user || !user.driverVerification?.documents?.[docType]) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const document = user.driverVerification.documents[docType];
+    
+    if (!document.data || !document.contentType) {
+      return res.status(404).json({ error: 'Document data not found' });
+    }
+
+    // Convert base64 back to buffer
+    const buffer = Buffer.from(document.data, 'base64');
+    
+    res.set({
+      'Content-Type': document.contentType,
+      'Content-Length': buffer.length,
+      'Content-Disposition': `inline; filename="${document.filename || 'document'}"`,
+      'Cache-Control': 'public, max-age=31536000'
+    });
+    
+    res.send(buffer);
+  } catch (err) {
+    console.error('Document serve error:', err);
+    res.status(500).json({ error: 'Failed to retrieve document' });
+  }
+});
+
 export default router

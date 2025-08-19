@@ -5,15 +5,15 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// Helper function to validate URLs
-const isValidUrl = (string) => {
-  try {
-    new URL(string);
-    return true;
-  } catch (_) {
-    return false;
-  }
-};
+// Helper function to validate URLs - This function is no longer used in this route.
+// const isValidUrl = (string) => {
+//   try {
+//     new URL(string);
+//     return true;
+//   } catch (_) {
+//     return false;
+//   }
+// };
 
 /**
  * @route POST /api/verify/submit
@@ -22,67 +22,50 @@ const isValidUrl = (string) => {
  */
 router.post("/submit", verifyFirebaseToken, async (req, res) => {
   try {
-    const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = req.body;
+    const { uid, idProof, license, rcBook, profilePhoto } = req.body;
 
-    // Validate inputs
-    if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
+    if (!uid || !idProof || !license || !rcBook || !profilePhoto) {
       return res.status(400).json({
-        error: "All document URLs must be provided.",
-        missing: [
-          !idProofUrl && 'idProofUrl',
-          !licenseUrl && 'licenseUrl',
-          !rcBookUrl && 'rcBookUrl',
-          !profilePhotoUrl && 'profilePhotoUrl'
-        ].filter(Boolean)
+        error: 'Missing required fields: uid and all document files are required'
       });
     }
 
-    // Validate URL formats
-    const urls = { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl };
-    const invalidUrls = [];
+    // Validate that each document has required properties
+    const requiredDocProps = ['data', 'contentType', 'filename'];
+    const documents = { idProof, license, rcBook, profilePhoto };
 
-    for (const [key, url] of Object.entries(urls)) {
-      if (!isValidUrl(url)) {
-        invalidUrls.push(key);
+    for (const [docName, doc] of Object.entries(documents)) {
+      for (const prop of requiredDocProps) {
+        if (!doc[prop]) {
+          return res.status(400).json({
+            error: `Invalid ${docName}: missing ${prop}`
+          });
+        }
       }
     }
 
-    if (invalidUrls.length > 0) {
-      return res.status(400).json({
-        error: "Invalid URL formats detected.",
-        invalidFields: invalidUrls
-      });
-    }
-
-    // Find user by Firebase UID
-    const user = await User.findOne({ uid: req.user.uid });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found. Please ensure your profile is set up correctly." });
-    }
-
-    // Check if already verified
-    if (user.driverVerification?.isVerified) {
-      return res.status(400).json({
-        error: "You are already verified.",
-        isVerified: true
-      });
-    }
-
-    // Update verification details
-    user.driverVerification = {
-      documents: {
-        idProofUrl,
-        licenseUrl,
-        rcBookUrl,
-        profilePhotoUrl,
+    const user = await User.findOneAndUpdate(
+      { uid },
+      {
+        $set: {
+          'driverVerification.documents.idProof': idProof,
+          'driverVerification.documents.license': license,
+          'driverVerification.documents.rcBook': rcBook,
+          'driverVerification.documents.profilePhoto': profilePhoto,
+          'driverVerification.submittedAt': new Date(),
+          'driverVerification.isVerified': false
+        }
       },
-      isVerified: false, // Mark as pending verification
-      submittedAt: new Date(),
-      lastUpdated: new Date()
-    };
+      { new: true, upsert: true }
+    );
 
-    await user.save();
+    // If user was not found and upsert created a new one, this is an error scenario.
+    // However, findOneAndUpdate with upsert:true should handle existing users.
+    // We check if the user object is actually updated or created, it should always be present after upsert.
+    if (!user) {
+      // This case might be rare with upsert, but good to have a fallback.
+      return res.status(500).json({ error: "Failed to update or create user verification data." });
+    }
 
     console.log(`✅ Verification documents submitted for user: ${req.user.uid}`);
 
@@ -121,6 +104,7 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
  */
 router.get("/status", verifyFirebaseToken, async (req, res) => {
   try {
+    // Find user by Firebase UID
     const user = await User.findOne({ uid: req.user.uid });
 
     if (!user) {
@@ -136,7 +120,7 @@ router.get("/status", verifyFirebaseToken, async (req, res) => {
     return res.json({
       isVerified: verification.isVerified,
       submittedAt: verification.submittedAt,
-      hasDocuments: !!verification.documents,
+      hasDocuments: !!verification.documents && Object.keys(verification.documents).some(key => verification.documents[key]), // Check if any document data exists
       status: verification.isVerified ? 'verified' : (verification.submittedAt ? 'pending' : 'not_submitted')
     });
   } catch (err) {
