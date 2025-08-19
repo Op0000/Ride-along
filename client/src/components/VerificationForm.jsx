@@ -1,262 +1,220 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
-import { API_BASE } from "../utils/api.js";
+
+import { useState } from 'react'
+import { getAuth } from 'firebase/auth'
+import { API_BASE } from '../utils/api.js'
 
 export default function VerificationForm() {
-  const [files, setFiles] = useState({
+  const auth = getAuth()
+  const user = auth.currentUser
+
+  const [documents, setDocuments] = useState({
     idProof: null,
     license: null,
     rcBook: null,
-    profilePhoto: null,
-  });
-  const [previews, setPreviews] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
+    profilePhoto: null
+  })
+  const [uploading, setUploading] = useState(false)
+  const [dragActive, setDragActive] = useState({})
 
-  const fileLabels = {
-    idProof: "ID Proof",
-    license: "Driving License",
-    rcBook: "RC Book",
-    profilePhoto: "Profile Photo",
-  };
-
-  const handleFileChange = (e) => {
-    const { name, files: selectedFiles } = e.target;
-    const file = selectedFiles[0];
-
-    // Validate file type and size
-    if (file) {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!allowedTypes.includes(file.type)) {
-        alert(`❌ Invalid file type for ${fileLabels[name]}. Please upload JPG, PNG, or PDF files only.`);
-        return;
-      }
-
-      if (file.size > maxSize) {
-        alert(`❌ File too large for ${fileLabels[name]}. Maximum size is 5MB.`);
-        return;
-      }
+  const handleFileSelect = (docType, file) => {
+    if (file && file.type.startsWith('image/')) {
+      setDocuments(prev => ({ ...prev, [docType]: file }))
+    } else {
+      alert('Please select a valid image file')
     }
+  }
 
-    setFiles((prev) => ({ ...prev, [name]: file }));
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviews((prev) => ({ ...prev, [name]: reader.result }));
-      };
-      reader.readAsDataURL(file);
+  const handleDrag = (e, docType) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(prev => ({ ...prev, [docType]: true }))
+    } else if (e.type === "dragleave") {
+      setDragActive(prev => ({ ...prev, [docType]: false }))
     }
-  };
+  }
 
-  const uploadAllFiles = async () => {
-    const formData = new FormData();
-    formData.append("idProof", files.idProof);
-    formData.append("license", files.license);
-    formData.append("rcBook", files.rcBook);
-    formData.append("profilePhoto", files.profilePhoto);
+  const handleDrop = (e, docType) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(prev => ({ ...prev, [docType]: false }))
 
-    const res = await axios.post("/api/upload/multi", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (progressEvent) => {
-        const percent = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        setProgress(percent);
-      },
-    });
-    return res.data;
-  };
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(docType, e.dataTransfer.files[0])
+    }
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Get current user from Firebase Auth
-    const { getAuth } = await import('firebase/auth');
-    const auth = getAuth();
-    const currentUser = auth.currentUser;
+    e.preventDefault()
     
-    if (!currentUser) {
-      alert('❌ Please log in to submit verification documents.');
-      return;
+    if (!user) {
+      alert('Please log in to submit verification documents')
+      return
     }
 
-    const user = { uid: currentUser.uid }; 
-
-    // Validate all files are selected
-    const requiredFiles = ['idProof', 'license', 'rcBook', 'profilePhoto'];
-    const missingFiles = requiredFiles.filter(key => !files[key]);
-
-    if (missingFiles.length > 0) {
-      alert(`❌ Please upload all required documents: ${missingFiles.map(key => fileLabels[key]).join(', ')}`);
-      return;
+    // Check if all documents are selected
+    if (!documents.idProof || !documents.license || !documents.rcBook || !documents.profilePhoto) {
+      alert('Please select all required documents')
+      return
     }
 
-    setLoading(true);
-    setProgress(0);
+    setUploading(true)
 
     try {
-      // Create FormData for file uploads
-      const formData = new FormData();
-      formData.append('idProof', files.idProof);
-      formData.append('license', files.license);
-      formData.append('rcBook', files.rcBook);
-      formData.append('profilePhoto', files.profilePhoto);
+      // Get Firebase ID token
+      const token = await user.getIdToken()
 
-      // Get Firebase auth token
-      const token = await currentUser.getIdToken();
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('idProof', documents.idProof)
+      formData.append('license', documents.license)
+      formData.append('rcBook', documents.rcBook)
+      formData.append('profilePhoto', documents.profilePhoto)
 
-      // Upload files to get file data
-      const uploadResponse = await fetch(`${API_BASE}/api/upload/multi`, {
+      // Upload documents to server
+      const uploadResponse = await fetch(`${API_BASE}/api/upload/documents`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
-        body: formData,
-      });
+        body: formData
+      })
 
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        throw new Error(`Upload failed with status: ${uploadResponse.status}. ${errorText}`);
-      }
-
-      const uploadResult = await uploadResponse.json();
-
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || 'Upload failed');
-      }
-
-      // Submit verification with file data
-      const verificationData = {
-        uid: user.uid,
-        idProof: uploadResult.idProof,
-        license: uploadResult.license,
-        rcBook: uploadResult.rcBook,
-        profilePhoto: uploadResult.profilePhoto,
-      };
-
-      const response = await fetch(`${API_BASE}/api/verify/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(verificationData),
-      });
-
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Verification submission failed with status: ${response.status}. ${errorText}`);
-      }
-
-      alert("✅ Documents submitted successfully! Your verification is pending review.");
-
-      // Reset form
-      setFiles({
-        idProof: null,
-        license: null,
-        rcBook: null,
-        profilePhoto: null,
-      });
-      setPreviews({});
-
-      // Reset file inputs
-      const fileInputs = document.querySelectorAll('input[type="file"]');
-      fileInputs.forEach(input => input.value = '');
-
-    } catch (err) {
-      console.error('Verification submission error:', err);
-
-      let errorMessage = 'Unknown error occurred';
-
-      // Handle different types of errors
-      if (typeof err === 'string') {
-        errorMessage = err;
-      } else if (err.response?.data) {
-        if (typeof err.response.data === 'string') {
-          errorMessage = err.response.data;
-        } else if (err.response.data.error) {
-          errorMessage = err.response.data.error;
-        } else if (err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else {
-          errorMessage = JSON.stringify(err.response.data);
+        const errorText = await uploadResponse.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { error: errorText }
         }
-      } else if (err.message) {
-        errorMessage = err.message;
-      } else if (typeof err === 'object') {
-        errorMessage = JSON.stringify(err);
+        throw new Error(errorData.error || 'Upload failed')
       }
 
-      alert(`❌ Error: ${errorMessage}`);
+      const uploadData = await uploadResponse.json()
+      
+      if (uploadData.success) {
+        alert('✅ Verification documents submitted successfully! Your documents are under review.')
+        // Reset form
+        setDocuments({
+          idProof: null,
+          license: null,
+          rcBook: null,
+          profilePhoto: null
+        })
+        // Refresh page to show updated verification status
+        window.location.reload()
+      } else {
+        throw new Error(uploadData.error || 'Upload failed')
+      }
+
+    } catch (error) {
+      console.error('Verification submission error:', error)
+      alert(`❌ Error: ${error.message}`)
     } finally {
-      setLoading(false);
-      setProgress(0);
+      setUploading(false)
     }
-  };
+  }
+
+  const documentLabels = {
+    idProof: 'ID Proof (Aadhar/PAN/Passport)',
+    license: 'Driving License',
+    rcBook: 'RC Book (Vehicle Registration)',
+    profilePhoto: 'Profile Photo'
+  }
+
+  const renderFileInput = (docType) => (
+    <div key={docType} className="mb-4">
+      <label className="block text-sm font-medium text-purple-300 mb-2">
+        {documentLabels[docType]} *
+      </label>
+      
+      <div
+        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+          dragActive[docType] 
+            ? 'border-purple-400 bg-purple-900/20' 
+            : documents[docType]
+            ? 'border-green-400 bg-green-900/20'
+            : 'border-zinc-600 bg-zinc-700/50'
+        }`}
+        onDragEnter={(e) => handleDrag(e, docType)}
+        onDragLeave={(e) => handleDrag(e, docType)}
+        onDragOver={(e) => handleDrag(e, docType)}
+        onDrop={(e) => handleDrop(e, docType)}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleFileSelect(docType, e.target.files[0])}
+          className="hidden"
+          id={`file-${docType}`}
+        />
+        
+        {documents[docType] ? (
+          <div className="text-green-400">
+            <div className="text-2xl mb-2">✓</div>
+            <div className="text-sm font-medium">{documents[docType].name}</div>
+            <div className="text-xs text-gray-400">
+              {Math.round(documents[docType].size / 1024)} KB
+            </div>
+            <button
+              type="button"
+              onClick={() => setDocuments(prev => ({ ...prev, [docType]: null }))}
+              className="mt-2 text-red-400 hover:text-red-300 text-xs underline"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="text-gray-400">
+            <div className="text-3xl mb-2">📁</div>
+            <div className="text-sm">
+              <label htmlFor={`file-${docType}`} className="cursor-pointer text-purple-400 hover:text-purple-300">
+                Click to select
+              </label>
+              <span> or drag file here</span>
+            </div>
+            <div className="text-xs mt-1">Max 5MB • JPG, PNG, PDF</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl shadow-lg space-y-6"
-    >
-      <h2 className="text-2xl font-semibold text-purple-300 text-center">
-        Driver Verification
-      </h2>
-      <p className="text-sm text-gray-300 text-center">
-        Upload your documents to get verified and start posting rides.
-      </p>
-
-      {Object.keys(fileLabels).map((key) => (
-        <div key={key} className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-200">
-            {fileLabels[key]} <span className="text-red-400">*</span>
-          </label>
-          <div className="flex items-center gap-3">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer hover:border-purple-400 hover:bg-purple-400/10 transition">
-              <CloudArrowUpIcon className="w-8 h-8 text-purple-300" />
-              <span className="text-xs text-gray-300">Click or drag file</span>
-              <span className="text-xs text-gray-400">(JPG, PNG, PDF - Max 5MB)</span>
-              <input
-                type="file"
-                name={key}
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".jpg,.jpeg,.png,.pdf"
-                required
-              />
-            </label>
-            {previews[key] && (
-              <img
-                src={previews[key]}
-                alt="preview"
-                className="w-20 h-20 object-cover rounded-lg border border-gray-500"
-              />
-            )}
-          </div>
-        </div>
-      ))}
-
-      {loading && (
-        <div className="w-full bg-gray-700 rounded-full h-2.5">
-          <div
-            className="bg-purple-500 h-2.5 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-semibold transition disabled:opacity-50"
-      >
-        {loading ? `Uploading ${progress}%` : "Submit Verification"}
-      </button>
-    </form>
-  );
+    <div className="bg-zinc-700 p-6 rounded-lg">
+      <h3 className="text-lg font-semibold text-purple-300 mb-4">
+        Driver Verification Documents
+      </h3>
+      
+      <form onSubmit={handleSubmit}>
+        {Object.keys(documentLabels).map(renderFileInput)}
+        
+        <button
+          type="submit"
+          disabled={uploading || !user}
+          className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
+            uploading
+              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700 text-white'
+          }`}
+        >
+          {uploading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              Submitting Documents...
+            </div>
+          ) : (
+            'Submit for Verification'
+          )}
+        </button>
+      </form>
+      
+      <div className="mt-4 text-sm text-gray-400">
+        <p>• All documents are required for verification</p>
+        <p>• Documents will be reviewed within 24-48 hours</p>
+        <p>• You'll be notified once verification is complete</p>
+      </div>
+    </div>
+  )
 }

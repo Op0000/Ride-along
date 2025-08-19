@@ -2,14 +2,12 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import mongoose from 'mongoose'
+import cors from 'cors'
 import app from './app.js'
 import Ride from './models/Ride.js'
 import cron from 'node-cron'
 
 const PORT = process.env.PORT || 5000
-
-// Enable CORS
-app.use(cors())
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {

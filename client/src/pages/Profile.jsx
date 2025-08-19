@@ -119,13 +119,20 @@ export default function Profile() {
   }
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('Please log in to update your profile');
+      return;
+    }
+
+    // Validate form before sending
+    if (!validate()) {
+      return;
+    }
 
     try {
       // Get Firebase ID token
       const token = await user.getIdToken();
 
-      // Updated fetch to use the correct API base URL and endpoint
       const response = await fetch(`${API_BASE}/api/users/profile`, {
         method: 'PUT',
         headers: {
@@ -133,42 +140,37 @@ export default function Profile() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: details.name,
-          age: details.age === '' ? null : parseInt(details.age),
+          name: details.name.trim(),
+          age: parseInt(details.age),
           gender: details.gender,
-          phone: details.phone
+          phone: details.phone.trim()
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorData.error || 'Failed to update profile';
-        } catch {
-          errorMessage = errorText || 'Failed to update profile';
-        }
-        throw new Error(errorMessage);
+        throw new Error(data.error || data.message || 'Failed to update profile');
       }
 
-      const data = await response.json();
       if (data.success) {
-        alert('✅ Profile updated successfully!')
-        // Update the details state to reflect changes
+        alert('✅ Profile updated successfully!');
+        // Update the details state with the response data
         setDetails(prev => ({
           ...prev,
-          name: details.name,
-          age: details.age === '' ? null : parseInt(details.age),
-          gender: details.gender,
-          phone: details.phone
-        }))
+          name: data.user.name,
+          age: data.user.age,
+          gender: data.user.gender,
+          phone: data.user.phone
+        }));
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        throw new Error(data.error || 'Profile update failed');
       }
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile: ' + error.message); // Use alert as in original code
+      alert(`❌ Error updating profile: ${error.message}`);
     }
   };
 

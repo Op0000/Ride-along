@@ -75,18 +75,36 @@ router.put('/profile', verifyFirebaseToken, async (req, res) => {
     const { name, age, gender, phone } = req.body;
     const uid = req.user.uid;
 
+    // Validate required fields
+    if (!name || !age || !gender || !phone) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields (name, age, gender, phone) are required'
+      });
+    }
+
+    // Validate phone number format
+    if (!/^\d{10}$/.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number must be exactly 10 digits'
+      });
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { uid },
       {
         $set: {
-          name: name || '',
-          age: age || null,
-          gender: gender || '',
-          phone: phone || ''
+          name: name.trim(),
+          age: parseInt(age),
+          gender: gender.trim(),
+          phone: phone.trim()
         }
       },
-      { new: true, upsert: true }
+      { new: true, upsert: true, runValidators: true }
     );
+
+    console.log(`✅ Profile updated for user: ${uid}`);
 
     res.json({
       success: true,
@@ -102,6 +120,15 @@ router.put('/profile', verifyFirebaseToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Profile update error:', error);
+    
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        message: error.message
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update profile',
