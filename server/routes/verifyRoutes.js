@@ -2,8 +2,15 @@
 import express from "express";
 import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
 import User from "../models/User.js";
+import cors from "cors";
 
 const router = express.Router();
+
+// Enable CORS for verify routes
+router.use(cors({
+  origin: ['http://localhost:5173', 'https://ride-along.xyz', 'https://www.ride-along.xyz'],
+  credentials: true
+}));
 
 // Helper function to validate URLs - This function is no longer used in this route.
 // const isValidUrl = (string) => {

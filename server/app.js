@@ -7,12 +7,17 @@ import bookingRoutes from './routes/bookingRoutes.js'
 import liveLocationRoutes from './routes/liveLocationRoutes.js'
 import supportRoutes from './routes/supportRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
-import verifyRoutes from './routes/verifyRoutes.js' // ✅ Fixed here
+import verifyRoutes from './routes/verifyRoutes.js'
 
 const app = express()
 
-// Middleware
-app.use(cors())
+// Enable CORS for all routes
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://ride-along.xyz', 'https://www.ride-along.xyz'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json()) // Parses JSON bodies
 
 app.use('/api/bookings', (req, res, next) => {
@@ -21,7 +26,7 @@ app.use('/api/bookings', (req, res, next) => {
 }) // Debug
 
 // Routes
-app.use('/api/verify', verifyRoutes) // ✅ Converted to ES module
+app.use('/api/verify', verifyRoutes)
 app.use('/api/support', supportRoutes)
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)

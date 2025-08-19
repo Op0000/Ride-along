@@ -1,8 +1,15 @@
 
 import express from "express";
 import multer from "multer";
+import cors from "cors";
 
 const router = express.Router();
+
+// Enable CORS for upload routes
+router.use(cors({
+  origin: ['http://localhost:5173', 'https://ride-along.xyz', 'https://www.ride-along.xyz'],
+  credentials: true
+}));
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();

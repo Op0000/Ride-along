@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
+import { API_BASE } from "../utils/api.js";
 
 export default function VerificationForm() {
   const [files, setFiles] = useState({
@@ -73,8 +74,17 @@ export default function VerificationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Mock user object for demonstration purposes, replace with actual user context
-    const user = { uid: "mockUserId" }; 
+    // Get current user from Firebase Auth
+    const { getAuth } = await import('firebase/auth');
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    
+    if (!currentUser) {
+      alert('❌ Please log in to submit verification documents.');
+      return;
+    }
+
+    const user = { uid: currentUser.uid }; 
 
     // Validate all files are selected
     const requiredFiles = ['idProof', 'license', 'rcBook', 'profilePhoto'];
@@ -96,9 +106,15 @@ export default function VerificationForm() {
       formData.append('rcBook', files.rcBook);
       formData.append('profilePhoto', files.profilePhoto);
 
+      // Get Firebase auth token
+      const token = await currentUser.getIdToken();
+
       // Upload files to get file data
-      const uploadResponse = await fetch('/api/upload/multi', {
+      const uploadResponse = await fetch(`${API_BASE}/api/upload/multi`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -122,10 +138,11 @@ export default function VerificationForm() {
         profilePhoto: uploadResult.profilePhoto,
       };
 
-      const response = await fetch('/api/verify/submit', {
+      const response = await fetch(`${API_BASE}/api/verify/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(verificationData),
       });

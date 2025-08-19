@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getAuth } from 'firebase/auth'
 import VerificationForm from '../components/VerificationForm' // ✅ make sure this path matches your project
+import { API_BASE } from "../utils/api.js";
 
 export default function Profile() {
   const auth = getAuth()
@@ -17,44 +18,54 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState({})
-  
+
   // New state for rides and bookings
   const [bookedRides, setBookedRides] = useState([])
   const [postedRides, setPostedRides] = useState([])
   const [ridesLoading, setRidesLoading] = useState(true)
   const [bookingsLoading, setBookingsLoading] = useState(true)
 
-  const API_BASE = '/api/users'
-  const RIDES_API = '/api/rides'
-  const BOOKINGS_API = '/api/bookings'
+  // Removed unused const API_BASE, RIDES_API, BOOKINGS_API. They are now defined within the useEffect.
 
   useEffect(() => {
     if (!user) return
 
-    const fetchUser = async () => {  
-      try {  
-        const res = await fetch(`${API_BASE}/${user.uid}`)  
-        if (res.ok) {  
-          const data = await res.json()  
-          setDetails({ ...data, uid: user.uid })  
-        } else {  
-          setDetails(prev => ({  
-            ...prev,  
-            uid: user.uid,  
-            email: user.email || '',  
-            name: user.displayName || ''  
-          }))  
-        }  
-      } catch (err) {  
-        console.error('Fetch failed:', err)  
-      } finally {  
-        setLoading(false)  
-      }  
+    const API_BASE_URL = 'https://ride-along-api.onrender.com'; // Use the actual API base URL
+
+    const fetchUser = async () => {
+      try {
+        // Updated fetch to use the correct API base URL
+        const res = await fetch(`${API_BASE_URL}/api/users/${user.uid}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json()
+          setDetails({ ...data, uid: user.uid })
+        } else {
+          setDetails(prev => ({
+            ...prev,
+            uid: user.uid,
+            email: user.email || '',
+            name: user.displayName || ''
+          }))
+        }
+      } catch (err) {
+        console.error('Fetch failed:', err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     const fetchUserRides = async () => {
       try {
-        const res = await fetch(`${RIDES_API}/user/${user.uid}`)
+        // Updated fetch to use the correct API base URL
+        const res = await fetch(`${API_BASE_URL}/api/rides/user/${user.uid}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
         if (res.ok) {
           const data = await res.json()
           setPostedRides(data)
@@ -68,7 +79,12 @@ export default function Profile() {
 
     const fetchUserBookings = async () => {
       try {
-        const res = await fetch(`${BOOKINGS_API}/user/${user.uid}`)
+        // Updated fetch to use the correct API base URL
+        const res = await fetch(`${API_BASE_URL}/api/bookings/user/${user.uid}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
         if (res.ok) {
           const data = await res.json()
           setBookedRides(data)
@@ -103,33 +119,42 @@ export default function Profile() {
   }
 
   const handleSave = async () => {
-    if (!validate()) return
+    if (!user) return;
 
-    try {  
-      const res = await fetch(`${API_BASE}/save`, {  
-        method: 'POST',  
-        headers: { 
+    try {
+      // Get Firebase ID token
+      const token = await user.getIdToken();
+
+      // Updated fetch to use the correct API base URL and endpoint
+      const response = await fetch(`${API_BASE}/api/users/profile`, {
+        method: 'PUT',
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },  
-        body: JSON.stringify(details)  
-      })  
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(details)
+      });
 
-      if (res.ok) {  
-        const responseData = await res.json();
-        console.log('Profile saved successfully:', responseData);
-        setSaved(true)  
-        setTimeout(() => setSaved(false), 2000)  
-      } else {
-        const errorData = await res.json();
-        console.error('Save failed with status:', res.status, errorData);
-        alert(`Failed to save profile: ${errorData.error || errorData.message || 'Unknown error'}`);
-      }  
-    } catch (err) {  
-      console.error('Save failed:', err);
-      alert(`Network error: ${err.message}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || 'Failed to update profile';
+        } catch {
+          errorMessage = errorText || 'Failed to update profile';
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      setSaved(true); // Use setSaved as in original code
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Error updating profile: ' + error.message); // Use alert as in original code
     }
-  }
+  };
 
   const handleCancelBooking = async (bookingId) => {
     const token = localStorage.getItem('token')
@@ -141,7 +166,8 @@ export default function Profile() {
     if (!confirm('Are you sure you want to cancel this booking?')) return
 
     try {
-      const res = await fetch(`${BOOKINGS_API}/${bookingId}`, {
+      // Updated fetch to use the correct API base URL
+      const res = await fetch(`${API_BASE}/api/bookings/${bookingId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -171,7 +197,8 @@ export default function Profile() {
     if (!confirm('Are you sure you want to delete this ride? This action cannot be undone.')) return
 
     try {
-      const res = await fetch(`${RIDES_API}/${rideId}`, {
+      // Updated fetch to use the correct API base URL
+      const res = await fetch(`${API_BASE}/api/rides/${rideId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -204,14 +231,14 @@ export default function Profile() {
   const formatDepartureTime = (departureTime) => {
     const date = new Date(departureTime)
     return {
-      date: date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      date: date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       }),
-      time: date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      time: date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
       })
     }
   }
@@ -256,7 +283,7 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-        
+
         {/* Profile Details Column */}
         <div className="lg:col-span-1">
           <div className="bg-zinc-800 p-4 sm:p-6 rounded-2xl shadow-2xl border border-zinc-700">
@@ -433,4 +460,4 @@ export default function Profile() {
       </div>
     </div>
   )
-  }
+}
