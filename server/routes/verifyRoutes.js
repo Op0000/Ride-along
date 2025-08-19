@@ -1,4 +1,3 @@
-
 // routes/verifyRoutes.js
 import express from "express";
 import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
@@ -27,11 +26,11 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
 
     // Validate inputs
     if (!idProofUrl || !licenseUrl || !rcBookUrl || !profilePhotoUrl) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "All document URLs must be provided.",
         missing: [
           !idProofUrl && 'idProofUrl',
-          !licenseUrl && 'licenseUrl', 
+          !licenseUrl && 'licenseUrl',
           !rcBookUrl && 'rcBookUrl',
           !profilePhotoUrl && 'profilePhotoUrl'
         ].filter(Boolean)
@@ -41,15 +40,15 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
     // Validate URL formats
     const urls = { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl };
     const invalidUrls = [];
-    
+
     for (const [key, url] of Object.entries(urls)) {
       if (!isValidUrl(url)) {
         invalidUrls.push(key);
       }
     }
-    
+
     if (invalidUrls.length > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid URL formats detected.",
         invalidFields: invalidUrls
       });
@@ -64,7 +63,7 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
 
     // Check if already verified
     if (user.driverVerification?.isVerified) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "You are already verified.",
         isVerified: true
       });
@@ -97,17 +96,20 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Driver verification error:", err);
-    
+
     // Handle MongoDB validation errors
     if (err.name === 'ValidationError') {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Invalid data format.",
         details: err.message
       });
     }
-    
-    return res.status(500).json({ 
-      error: "Server error while submitting documents. Please try again later." 
+
+    // General server error handling
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Failed to submit verification',
+      error: err.message
     });
   }
 });
@@ -120,17 +122,17 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
 router.get("/status", verifyFirebaseToken, async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.user.uid });
-    
+
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
-    
+
     const verification = user.driverVerification || {
       isVerified: false,
       submittedAt: null,
       documents: null
     };
-    
+
     return res.json({
       isVerified: verification.isVerified,
       submittedAt: verification.submittedAt,

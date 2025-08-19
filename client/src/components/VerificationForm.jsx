@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import axios from "axios";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
@@ -24,23 +23,23 @@ export default function VerificationForm() {
   const handleFileChange = (e) => {
     const { name, files: selectedFiles } = e.target;
     const file = selectedFiles[0];
-    
+
     // Validate file type and size
     if (file) {
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
       const maxSize = 5 * 1024 * 1024; // 5MB
-      
+
       if (!allowedTypes.includes(file.type)) {
         alert(`❌ Invalid file type for ${fileLabels[name]}. Please upload JPG, PNG, or PDF files only.`);
         return;
       }
-      
+
       if (file.size > maxSize) {
         alert(`❌ File too large for ${fileLabels[name]}. Maximum size is 5MB.`);
         return;
       }
     }
-    
+
     setFiles((prev) => ({ ...prev, [name]: file }));
 
     if (file) {
@@ -58,7 +57,7 @@ export default function VerificationForm() {
     formData.append("license", files.license);
     formData.append("rcBook", files.rcBook);
     formData.append("profilePhoto", files.profilePhoto);
-    
+
     const res = await axios.post("/api/upload/multi", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (progressEvent) => {
@@ -73,27 +72,27 @@ export default function VerificationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate all files are selected
     const requiredFiles = ['idProof', 'license', 'rcBook', 'profilePhoto'];
     const missingFiles = requiredFiles.filter(key => !files[key]);
-    
+
     if (missingFiles.length > 0) {
       alert(`❌ Please upload all required documents: ${missingFiles.map(key => fileLabels[key]).join(', ')}`);
       return;
     }
-    
+
     setLoading(true);
     setProgress(0);
 
     try {
       // Upload all files at once
       const uploadResult = await uploadAllFiles();
-      
+
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || 'Upload failed');
       }
-      
+
       const { idProofUrl, licenseUrl, rcBookUrl, profilePhotoUrl } = uploadResult;
 
       // Send to verification API
@@ -108,7 +107,7 @@ export default function VerificationForm() {
       );
 
       alert("✅ Documents submitted successfully! Your verification is pending review.");
-      
+
       // Reset form
       setFiles({
         idProof: null,
@@ -117,14 +116,14 @@ export default function VerificationForm() {
         profilePhoto: null,
       });
       setPreviews({});
-      
+
       // Reset file inputs
       const fileInputs = document.querySelectorAll('input[type="file"]');
       fileInputs.forEach(input => input.value = '');
-      
+
     } catch (err) {
       console.error('Verification submission error:', err);
-      
+
       let errorMessage = 'Unknown error occurred';
       if (err.response?.data?.error) {
         errorMessage = err.response.data.error;
@@ -133,7 +132,7 @@ export default function VerificationForm() {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       alert(`❌ Error: ${errorMessage}`);
     } finally {
       setLoading(false);

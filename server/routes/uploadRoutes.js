@@ -1,4 +1,3 @@
-
 // routes/uploadRoutes.js
 import express from "express";
 import multer from "multer";
@@ -53,8 +52,12 @@ router.post("/", upload.single("file"), (req, res) => {
     }
     return res.json({ success: true, url: fileUrl(req.file) });
   } catch (error) {
-    console.error("Single upload error:", error);
-    return res.status(500).json({ success: false, error: "Upload failed" });
+    console.error('Upload error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'Failed to upload file',
+      error: error.message 
+    });
   }
 });
 
@@ -72,18 +75,18 @@ router.post("/multi", upload.fields([
 ]), (req, res) => {
   try {
     const files = req.files || {};
-    
+
     // Check if all required files are present
     const requiredFields = ['idProof', 'license', 'rcBook', 'profilePhoto'];
     const missingFields = requiredFields.filter(field => !files[field] || !files[field][0]);
-    
+
     if (missingFields.length > 0) {
       return res.status(400).json({ 
         success: false, 
         error: `Missing required files: ${missingFields.join(', ')}` 
       });
     }
-    
+
     const idProofUrl = fileUrl(files.idProof?.[0]);
     const licenseUrl = fileUrl(files.license?.[0]);
     const rcBookUrl = fileUrl(files.rcBook?.[0]);
@@ -106,14 +109,14 @@ router.post("/multi", upload.fields([
     });
   } catch (err) {
     console.error("Upload multi error:", err);
-    
+
     let errorMessage = "Upload failed";
     if (err.message.includes("Invalid file type")) {
       errorMessage = err.message;
     } else if (err.code === 'LIMIT_FILE_SIZE') {
       errorMessage = "File too large. Maximum size is 5MB per file.";
     }
-    
+
     return res.status(500).json({ success: false, error: errorMessage });
   }
 });
@@ -132,14 +135,14 @@ router.use((error, req, res, next) => {
       error: `Upload error: ${error.message}`
     });
   }
-  
+
   if (error.message.includes('Invalid file type')) {
     return res.status(400).json({
       success: false,
       error: error.message
     });
   }
-  
+
   next(error);
 });
 
