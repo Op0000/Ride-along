@@ -1,38 +1,44 @@
 import mongoose from 'mongoose'
 
 const userSchema = new mongoose.Schema({
-  uid: { type: String, required: true, unique: true }, // Firebase UID
-  name: String,
-  age: Number,
-  gender: String,
-  email: String,
-  phone: String,
-
-  driverVerification: {
+  uid: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, default: '' },
+  age: { type: Number, default: null },
+  gender: { type: String, default: '' },
+  university: { type: String, default: '' },
+  course: { type: String, default: '' },
+  address: { type: String, default: '' },
+  profilePicture: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  emergencyContact: {
+    name: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    relation: { type: String, default: '' }
+  },
+  averageRating: { type: Number, default: 0 },
+  ridesTaken: { type: Number, default: 0 },
+  ridesOffered: { type: Number, default: 0 },
+  verification: {
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     documents: {
-      idProof: {
-        data: { type: String }, // base64 string
-        contentType: { type: String }, // mime type
-        filename: { type: String }
+      licenseDocument: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: Date
       },
-      license: {
-        data: { type: String },
-        contentType: { type: String },
-        filename: { type: String }
-      },
-      rcBook: {
-        data: { type: String },
-        contentType: { type: String },
-        filename: { type: String }
-      },
-      profilePhoto: {
-        data: { type: String },
-        contentType: { type: String },
-        filename: { type: String }
+      identityDocument: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: Date
       }
     },
-    isVerified: { type: Boolean, default: false },
-    submittedAt: { type: Date },
+    submittedAt: Date,
+    reviewedAt: Date,
+    adminNotes: String
   }
 }, { timestamps: true })
 

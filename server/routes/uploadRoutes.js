@@ -1,122 +1,129 @@
-import express from "express";
-import multer from "multer";
-import cors from "cors";
-import User from '../models/User.js'; // Assuming User model is in '../models/User.js'
-import { verifyFirebaseToken } from '../middleware/authMiddleware.js'; // Assuming middleware is correctly placed
 
-const router = express.Router();
+import express from 'express'
+import multer from 'multer'
+import User from '../models/User.js'
 
-// Enable CORS for upload routes
-router.use(cors({
-  origin: ['http://localhost:5173', 'https://ride-along.xyz', 'https://www.ride-along.xyz'],
-  credentials: true
-}));
+const router = express.Router()
 
 // Configure multer for memory storage
-const storage = multer.memoryStorage();
-
-// File filter for validation (allowing images and PDFs as per general practice, though the change snippet only specifies images)
-const fileFilter = (req, file, cb) => {
-  // The provided change snippet seems to only allow images, but the original had PDFs.
-  // Sticking to the provided change snippet for now which explicitly allows images.
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed'));
-  }
-};
-
-const upload = multer({
+const storage = multer.memoryStorage()
+const upload = multer({ 
   storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG, and PDF files are allowed'), false)
+    }
   }
-});
+})
 
-/**
- * POST /api/upload/documents
- * Uploads documents for driver verification (idProof, license, rcBook, profilePhoto)
- * Requires Firebase token for authentication.
- * Updates user's driverVerification.documents and related fields in the database.
- */
-router.post('/documents', verifyFirebaseToken, upload.fields([
-  { name: "idProof", maxCount: 1 },
-  { name: "license", maxCount: 1 },
-  { name: "rcBook", maxCount: 1 },
-  { name: "profilePhoto", maxCount: 1 }
+// Upload verification documents
+router.post('/verification', upload.fields([
+  { name: 'licenseDocument', maxCount: 1 },
+  { name: 'identityDocument', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { uid } = req.user; // Assuming 'uid' is added to req.user by verifyFirebaseToken
-    const files = req.files;
+    const { userId } = req.body
 
-    // Check if all required files are present
-    if (!files.idProof || !files.license || !files.rcBook || !files.profilePhoto) {
-      // Provide a more specific error message if files are missing
-      const missing = [];
-      if (!files.idProof) missing.push('idProof');
-      if (!files.license) missing.push('license');
-      if (!files.rcBook) missing.push('rcBook');
-      if (!files.profilePhoto) missing.push('profilePhoto');
-      return res.status(400).json({
-        success: false,
-        error: `All documents are required. Missing: ${missing.join(', ')}`
-      });
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' })
     }
 
-    // Convert files to base64 and prepare document objects
-    const documents = {};
-
-    for (const [docType, fileArray] of Object.entries(files)) {
-      const file = fileArray[0]; // Get the first file from the array
-      documents[docType] = {
-        data: file.buffer.toString('base64'),
-        contentType: file.mimetype,
-        filename: file.originalname
-      };
+    if (!req.files || (!req.files.licenseDocument && !req.files.identityDocument)) {
+      return res.status(400).json({ error: 'At least one document is required' })
     }
 
-    // Update user with document data
-    const user = await User.findOneAndUpdate(
-      { uid }, // Find user by UID
-      {
-        $set: {
-          'driverVerification.documents': documents,
-          'driverVerification.submittedAt': new Date(),
-          'driverVerification.isVerified': false // Reset verification status upon new submission
-        }
-      },
-      { new: true, upsert: true } // Return the updated document, create if not found
-    );
+    const user = await User.findOne({ uid: userId })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
 
-    res.json({
-      success: true,
+    // Initialize verification object if it doesn't exist
+    if (!user.verification) {
+      user.verification = {
+        status: 'pending',
+        documents: {}
+      }
+    }
+
+    // Store documents as base64 in MongoDB
+    if (req.files.licenseDocument) {
+      const licenseFile = req.files.licenseDocument[0]
+      user.verification.documents.licenseDocument = {
+        data: licenseFile.buffer.toString('base64'),
+        contentType: licenseFile.mimetype,
+        filename: licenseFile.originalname,
+        uploadedAt: new Date()
+      }
+    }
+
+    if (req.files.identityDocument) {
+      const identityFile = req.files.identityDocument[0]
+      user.verification.documents.identityDocument = {
+        data: identityFile.buffer.toString('base64'),
+        contentType: identityFile.mimetype,
+        filename: identityFile.originalname,
+        uploadedAt: new Date()
+      }
+    }
+
+    user.verification.status = 'pending'
+    user.verification.submittedAt = new Date()
+
+    await user.save()
+
+    res.json({ 
       message: 'Documents uploaded successfully',
-      documents: Object.keys(documents) // Return names of uploaded documents
-    });
-  } catch (err) {
-    console.error('Upload error:', err);
-    // Provide specific error messages from multer or other errors
-    let errorMessage = 'Failed to upload documents';
-    if (err.message.includes('Only image files are allowed')) {
-      errorMessage = err.message;
-    } else if (err.message.includes('File too large')) {
-      errorMessage = 'File too large. Maximum size is 5MB per file.';
-    } else if (err instanceof multer.MulterError) {
-      errorMessage = `Multer error: ${err.message}`;
+      verification: {
+        status: user.verification.status,
+        submittedAt: user.verification.submittedAt,
+        documents: {
+          licenseDocument: user.verification.documents.licenseDocument ? 'uploaded' : null,
+          identityDocument: user.verification.documents.identityDocument ? 'uploaded' : null
+        }
+      }
+    })
+
+  } catch (error) {
+    console.error('Upload error:', error)
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File size too large. Maximum 10MB allowed.' })
     }
-    
-    res.status(500).json({ 
-      success: false,
-      error: errorMessage,
-      message: err.message // Include the raw error message for debugging
-    });
+    res.status(500).json({ error: 'Upload failed' })
   }
-});
+})
 
-// The original code had other routes like a single file upload and multi-file upload.
-// These have been removed as the provided changes only focused on the '/documents' route
-// and did not indicate these should be preserved or modified.
-// If those routes were intended to be kept, they would need to be explicitly included.
+// Get uploaded document
+router.get('/document/:userId/:documentType', async (req, res) => {
+  try {
+    const { userId, documentType } = req.params
 
-export default router;
+    const user = await User.findOne({ uid: userId })
+    if (!user || !user.verification || !user.verification.documents) {
+      return res.status(404).json({ error: 'Document not found' })
+    }
+
+    const document = user.verification.documents[documentType]
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' })
+    }
+
+    const buffer = Buffer.from(document.data, 'base64')
+    
+    res.set({
+      'Content-Type': document.contentType,
+      'Content-Disposition': `inline; filename="${document.filename}"`
+    })
+    
+    res.send(buffer)
+
+  } catch (error) {
+    console.error('Error fetching document:', error)
+    res.status(500).json({ error: 'Failed to fetch document' })
+  }
+})
+
+export default router
