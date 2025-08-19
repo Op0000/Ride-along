@@ -1,9 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-import express from 'express'
 import mongoose from 'mongoose'
-import cors from 'cors'
 import app from './app.js'
 import Ride from './models/Ride.js'
 import cron from 'node-cron'

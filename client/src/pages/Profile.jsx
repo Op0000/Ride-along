@@ -24,9 +24,9 @@ export default function Profile() {
   const [ridesLoading, setRidesLoading] = useState(true)
   const [bookingsLoading, setBookingsLoading] = useState(true)
 
-  const API_BASE = 'https://ride-along-api.onrender.com/api/users'
-  const RIDES_API = 'https://ride-along-api.onrender.com/api/rides'
-  const BOOKINGS_API = 'https://ride-along-api.onrender.com/api/bookings'
+  const API_BASE = '/api/users'
+  const RIDES_API = '/api/rides'
+  const BOOKINGS_API = '/api/bookings'
 
   useEffect(() => {
     if (!user) return
@@ -212,16 +212,33 @@ export default function Profile() {
     <div className="min-h-screen bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-4 sm:p-6">
       <h1 className="text-3xl font-bold text-purple-400 mb-6 text-center">Your Profile</h1>
 
-      {/* ✅ Added verification status */}
+      {/* Driver Verification Status */}
       <div className="max-w-2xl mx-auto mb-6 p-4 bg-zinc-800 rounded-lg shadow border border-zinc-700">
         {details.driverVerification?.isVerified ? (
-          <p className="text-green-400 font-semibold">
-            ✅ You are verified! You can post rides.
-          </p>
+          <div className="text-center">
+            <p className="text-green-400 font-semibold text-lg mb-2">
+              ✅ You are verified!
+            </p>
+            <p className="text-green-300">
+              You can now post rides and offer transportation to other users.
+            </p>
+          </div>
+        ) : details.driverVerification?.submittedAt ? (
+          <div className="text-center">
+            <p className="text-yellow-400 font-semibold text-lg mb-2">
+              ⏳ Verification Pending
+            </p>
+            <p className="text-yellow-300 mb-2">
+              Your documents were submitted on {new Date(details.driverVerification.submittedAt).toLocaleDateString()}
+            </p>
+            <p className="text-gray-300 text-sm">
+              Our team is reviewing your documents. You'll be notified once verified.
+            </p>
+          </div>
         ) : (
           <>
-            <p className="text-red-400 font-semibold mb-3">
-              ⚠️ You are not verified. Please complete verification below.
+            <p className="text-red-400 font-semibold mb-3 text-center">
+              ⚠️ Driver verification required to post rides
             </p>
             <VerificationForm />
           </>
