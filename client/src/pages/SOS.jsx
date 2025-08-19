@@ -160,7 +160,8 @@ export default function SOS() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        const shareableUrl = result.shareableUrl || `${window.location.origin}/live-location/${sessionId}`
+        // Always use the frontend URL for the shareable link
+        const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
         setShareableLink(shareableUrl)
         console.log('✅ Live location session created:', result)
         return shareableUrl
@@ -169,8 +170,13 @@ export default function SOS() {
       }
     } catch (error) {
       console.error('❌ Error creating live location session:', error)
-      alert('Failed to create live location session. Please check your connection and try again.')
-      return null
+      
+      // Fallback to Google Maps sharing
+      console.log('📍 Falling back to Google Maps sharing')
+      const googleMapsUrl = `https://maps.google.com/maps?q=${location.lat},${location.lng}&z=15`
+      setShareableLink(googleMapsUrl)
+      alert('Live location backend is unavailable. Using Google Maps sharing as fallback.')
+      return googleMapsUrl
     }
   }
 
@@ -228,12 +234,18 @@ export default function SOS() {
       if (shareableUrl) {
         console.log('Live location sharing started:', shareableUrl)
 
-        // Set up interval to update location every 30 seconds
-        const interval = setInterval(() => {
-          getCurrentLocation(true) // true flag for live updates
-        }, 30000)
+        // Only set up interval if not using Google Maps fallback
+        if (!shareableUrl.includes('maps.google.com')) {
+          // Set up interval to update location every 30 seconds
+          const interval = setInterval(() => {
+            getCurrentLocation(true) // true flag for live updates
+          }, 30000)
 
-        setLiveLocationInterval(interval)
+          setLiveLocationInterval(interval)
+          alert('Live location sharing started! Your location will be updated every 30 seconds.')
+        } else {
+          alert('Using Google Maps for location sharing. Share the link to let others see your current location.')
+        }
       } else {
         setIsLiveSharing(false)
         alert('Failed to start live location sharing. Please try again.')
@@ -278,8 +290,13 @@ export default function SOS() {
 
   const copyShareableLink = () => {
     if (shareableLink) {
+      const isGoogleMaps = shareableLink.includes('maps.google.com')
+      const message = isGoogleMaps 
+        ? 'Google Maps link copied to clipboard! Send this to show your current location.'
+        : 'Live location link copied to clipboard! Send this to people who need to track your location.'
+      
       navigator.clipboard.writeText(shareableLink).then(() => {
-        alert('Shareable link copied to clipboard! Send this to people who need to track your location.')
+        alert(message)
       }).catch(() => {
         alert('Unable to copy link. Please copy manually: ' + shareableLink)
       })
@@ -446,14 +463,15 @@ export default function SOS() {
           {isLiveSharing && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
               <div className="text-green-800 text-sm">
-                <strong>Live sharing active:</strong> Your location is being updated every 30 seconds. 
-                This helps emergency responders track your real-time position.
+                <strong>Location sharing active:</strong> {shareableLink?.includes('maps.google.com') 
+                  ? 'Using Google Maps for location sharing.'
+                  : 'Your location is being updated every 30 seconds. This helps emergency responders track your real-time position.'}
               </div>
 
               {shareableLink && (
                 <div className="mt-3 pt-3 border-t border-green-300">
                   <div className="text-green-700 font-semibold text-sm mb-2">
-                    🔗 Shareable Live Location Link:
+                    🔗 {shareableLink.includes('maps.google.com') ? 'Google Maps Location Link:' : 'Shareable Live Location Link:'}
                   </div>
                   <div className="flex items-center gap-2">
                     <input
@@ -470,7 +488,9 @@ export default function SOS() {
                     </button>
                   </div>
                   <div className="text-green-600 text-xs mt-1">
-                    Share this link with emergency contacts to let them track your live location
+                    {shareableLink.includes('maps.google.com') 
+                      ? 'Share this Google Maps link to show your current location'
+                      : 'Share this link with emergency contacts to let them track your live location'}
                   </div>
                 </div>
               )}

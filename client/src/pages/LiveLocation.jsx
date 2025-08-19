@@ -38,7 +38,13 @@ export default function LiveLocation() {
       }
     } catch (err) {
       console.error('Error fetching location:', err)
-      setError('Live location sharing session not found. This could be because:\n• The session has expired\n• The link is invalid\n• The person stopped sharing their location')
+      
+      // Check if this might be a network/server issue
+      if (err.message.includes('fetch') || err.message.includes('network') || err.message.includes('Failed to fetch')) {
+        setError('Unable to connect to live location service. This could be because:\n• The server is temporarily unavailable\n• You have a network connection issue\n• The live location service is down\n\nPlease try refreshing the page or check your internet connection.')
+      } else {
+        setError('Live location sharing session not found. This could be because:\n• The session has expired\n• The link is invalid\n• The person stopped sharing their location\n• The live location service is temporarily unavailable')
+      }
     } finally {
       setLoading(false)
     }
