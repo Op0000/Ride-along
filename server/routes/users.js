@@ -69,6 +69,47 @@ router.post('/save', async (req, res) => {
   }
 });
 
+// PUT /api/users/profile - Update user profile
+router.put('/profile', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { name, age, gender, phone } = req.body;
+    const uid = req.user.uid;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      {
+        $set: {
+          name: name || '',
+          age: age || null,
+          gender: gender || '',
+          phone: phone || ''
+        }
+      },
+      { new: true, upsert: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        uid: updatedUser.uid,
+        name: updatedUser.name,
+        age: updatedUser.age,
+        gender: updatedUser.gender,
+        phone: updatedUser.phone,
+        email: updatedUser.email
+      }
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: error.message
+    });
+  }
+});
+
 // Get user by UID
 router.get('/:uid', async (req, res) => {
   try {

@@ -12,11 +12,12 @@ import 'leaflet/dist/leaflet.css';
 
 import Home from './pages/Home.jsx'
 import PostRide from './pages/PostRide.jsx'
-import SearchRides from './pages/SearchRide.jsx'
+import SearchRides from './pages/SearchRides.jsx'
 import RideDetail from './pages/RideDetail.jsx'
 import Profile from './pages/Profile.jsx'
 import SOS from './pages/SOS.jsx'
 import VerificationForm from "./components/VerificationForm";
+import AdminVerify from './pages/AdminVerify'
 
 // ✅ Import your legal pages
 import Terms from './pages/Terms.jsx'
@@ -58,7 +59,7 @@ function BookingSuccess() {
 
         // Find the booking for this ride
         const booking = bookings.find(b => b.rideId && b.rideId._id === rideId)
-        
+
         setRideDetails(ride)
         setUserBooking(booking)
       } catch (err) {
@@ -103,7 +104,7 @@ function BookingSuccess() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center p-4">
       <div className="bg-zinc-800 p-8 rounded-xl shadow-2xl max-w-2xl mx-auto text-white border border-green-500 backdrop-blur-md">
-        
+
         {/* Success Header */}
         <div className="text-center mb-6">
           <div className="text-6xl text-green-500 mb-4">✅</div>
@@ -275,7 +276,7 @@ function App() {
       const provider = new GoogleAuthProvider()
       provider.setCustomParameters({ prompt: 'select_account' })
       const result = await signInWithPopup(auth, provider)
-      
+
       // Get token and store it immediately after login
       const token = await result.user.getIdToken()
       localStorage.setItem('uid', result.user.uid)
@@ -328,7 +329,7 @@ function App() {
               >
                 🆘 SOS
               </Link>
-              
+
               {user ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -466,7 +467,7 @@ function App() {
                     >
                       ℹ️ About Us
                     </Link>
-                    
+
                     <div className="px-4 py-2 border-b border-blue-600">
                       <p className="text-xs text-blue-200 font-medium mb-2">Legal & Policies</p>
                       <div className="space-y-1">
@@ -493,7 +494,7 @@ function App() {
                         </Link>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={() => {
                         handleLogout()
@@ -529,12 +530,15 @@ function App() {
         <Route path="/ride/:id" element={<RideDetail />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/sos" element={<SOS />} />
-        
+
         {/* ✅ Booking Success Route */}
         <Route path="/booking-success/:rideId" element={<BookingSuccess />} />
 
         {/* ✅ Live Location Route */}
         <Route path="/live-location/:sessionId" element={<LiveLocation />} />
+        
+        {/* ✅ Admin Verification Route */}
+        <Route path="/admin/verify" element={<AdminVerify />} />
 
         {/* ✅ Legal Routes */}
         <Route path="/terms" element={<Terms />} />
@@ -542,11 +546,11 @@ function App() {
         <Route path="/refund" element={<Refund />} />
         <Route path="/about" element={<About />} />
         <Route path="/support" element={<Support />} />
-        
+
         {/* ✅ 404 Route - Must be last */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      
+
       {/* Footer Component */}
       <Footer />
     </div>
@@ -554,4 +558,3 @@ function App() {
 }
 
 export default App
-                               

@@ -129,10 +129,15 @@ export default function Profile() {
       const response = await fetch(`${API_BASE}/api/users/profile`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(details)
+        body: JSON.stringify({
+          name: details.name,
+          age: details.age === '' ? null : parseInt(details.age),
+          gender: details.gender,
+          phone: details.phone
+        })
       });
 
       if (!response.ok) {
@@ -147,8 +152,19 @@ export default function Profile() {
         throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      setSaved(true); // Use setSaved as in original code
+      const data = await response.json();
+      if (data.success) {
+        alert('✅ Profile updated successfully!')
+        // Update the details state to reflect changes
+        setDetails(prev => ({
+          ...prev,
+          name: details.name,
+          age: details.age === '' ? null : parseInt(details.age),
+          gender: details.gender,
+          phone: details.phone
+        }))
+      }
+      setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error('Error updating profile:', error);
