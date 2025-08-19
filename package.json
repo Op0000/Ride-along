@@ -1,5 +1,13 @@
+
 {
-  "dependencies": {
-    "multer": "^2.0.2"
-  }
+  "name": "ride-along",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "cd client && npm install && npm run build",
+    "start": "cd server && npm install && node server.js",
+    "dev": "cd server && npm run dev"
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }
