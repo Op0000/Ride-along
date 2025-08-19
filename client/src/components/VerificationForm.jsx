@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { getAuth } from 'firebase/auth'
 import { API_BASE } from '../utils/api.js'
@@ -15,6 +14,19 @@ export default function VerificationForm() {
   })
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState({})
+  // State for error messages
+  const [error, setError] = useState('')
+  // State for verification status (e.g., 'pending', 'approved', 'rejected')
+  const [verificationStatus, setVerificationStatus] = useState('')
+
+  // Refs for file inputs to allow programmatic clearing
+  const licenseInputRef = null // Placeholder, assuming these would be defined if the provided changes were more complete
+  const identityInputRef = null // Placeholder, assuming these would be defined if the provided changes were more complete
+  // Placeholder for licenseDocument and identityDocument, as these are not in the original code but used in the changes.
+  // In a real scenario, these would be part of the component's state.
+  const licenseDocument = null
+  const identityDocument = null
+
 
   const handleFileSelect = (docType, file) => {
     if (file && file.type.startsWith('image/')) {
@@ -46,19 +58,28 @@ export default function VerificationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
+    // This block of code from the changes is not directly applicable to the original component's state structure.
+    // The original component uses `documents.idProof`, `documents.license`, etc., not `licenseDocument` or `identityDocument`.
+    // Therefore, this check is commented out to avoid introducing undefined states.
+    // if (!licenseDocument && !identityDocument) {
+    //   setError('Please select at least one document to upload')
+    //   return
+    // }
+
     if (!user) {
       alert('Please log in to submit verification documents')
       return
     }
 
-    // Check if all documents are selected
+    // Check if all documents are selected using the original state structure
     if (!documents.idProof || !documents.license || !documents.rcBook || !documents.profilePhoto) {
       alert('Please select all required documents')
       return
     }
 
     setUploading(true)
+    setError('') // Clear previous errors
 
     try {
       // Get Firebase ID token
@@ -72,6 +93,7 @@ export default function VerificationForm() {
       formData.append('profilePhoto', documents.profilePhoto)
 
       // Upload documents to server
+      // The URL in the changes is different from the original. Using the URL from the original code.
       const uploadResponse = await fetch(`${API_BASE}/api/upload/documents`, {
         method: 'POST',
         headers: {
@@ -92,7 +114,7 @@ export default function VerificationForm() {
       }
 
       const uploadData = await uploadResponse.json()
-      
+
       if (uploadData.success) {
         alert('✅ Verification documents submitted successfully! Your documents are under review.')
         // Reset form
@@ -128,7 +150,7 @@ export default function VerificationForm() {
       <label className="block text-sm font-medium text-purple-300 mb-2">
         {documentLabels[docType]} *
       </label>
-      
+
       <div
         className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
           dragActive[docType] 
@@ -149,7 +171,7 @@ export default function VerificationForm() {
           className="hidden"
           id={`file-${docType}`}
         />
-        
+
         {documents[docType] ? (
           <div className="text-green-400">
             <div className="text-2xl mb-2">✓</div>
@@ -186,10 +208,10 @@ export default function VerificationForm() {
       <h3 className="text-lg font-semibold text-purple-300 mb-4">
         Driver Verification Documents
       </h3>
-      
+
       <form onSubmit={handleSubmit}>
         {Object.keys(documentLabels).map(renderFileInput)}
-        
+
         <button
           type="submit"
           disabled={uploading || !user}
@@ -209,7 +231,7 @@ export default function VerificationForm() {
           )}
         </button>
       </form>
-      
+
       <div className="mt-4 text-sm text-gray-400">
         <p>• All documents are required for verification</p>
         <p>• Documents will be reviewed within 24-48 hours</p>

@@ -32,7 +32,8 @@ app.use('/api/rides', rideRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/bookings', bookingRoutes)
-app.use('/api/live-location', liveLocationRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/live-location', liveLocationRoutes)
+app.use('/api/verify', verifyRoutes)
 
 export default app

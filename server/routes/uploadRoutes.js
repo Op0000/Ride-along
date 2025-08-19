@@ -28,6 +28,9 @@ router.post('/verification', upload.fields([
   try {
     const { userId } = req.body
 
+    console.log('Upload request received for user:', userId)
+    console.log('Files received:', req.files ? Object.keys(req.files) : 'No files')
+
     if (!userId) {
       return res.status(400).json({ error: 'User ID is required' })
     }
@@ -52,6 +55,7 @@ router.post('/verification', upload.fields([
     // Store documents as base64 in MongoDB
     if (req.files.licenseDocument) {
       const licenseFile = req.files.licenseDocument[0]
+      console.log('Processing license document:', licenseFile.originalname)
       user.verification.documents.licenseDocument = {
         data: licenseFile.buffer.toString('base64'),
         contentType: licenseFile.mimetype,
@@ -62,6 +66,7 @@ router.post('/verification', upload.fields([
 
     if (req.files.identityDocument) {
       const identityFile = req.files.identityDocument[0]
+      console.log('Processing identity document:', identityFile.originalname)
       user.verification.documents.identityDocument = {
         data: identityFile.buffer.toString('base64'),
         contentType: identityFile.mimetype,
@@ -75,7 +80,10 @@ router.post('/verification', upload.fields([
 
     await user.save()
 
+    console.log('Documents saved successfully for user:', userId)
+
     res.json({ 
+      success: true,
       message: 'Documents uploaded successfully',
       verification: {
         status: user.verification.status,
@@ -92,7 +100,7 @@ router.post('/verification', upload.fields([
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File size too large. Maximum 10MB allowed.' })
     }
-    res.status(500).json({ error: 'Upload failed' })
+    res.status(500).json({ error: 'Upload failed', details: error.message })
   }
 })
 

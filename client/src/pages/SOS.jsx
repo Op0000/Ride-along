@@ -29,7 +29,7 @@ export default function SOS() {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
       )
       const data = await response.json()
-      
+
       if (data && data.display_name) {
         setPlaceName(data.display_name)
       } else {
@@ -41,22 +41,36 @@ export default function SOS() {
     }
   }
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = (isLiveUpdate = false) => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const location = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
+            timestamp: new Date().toISOString()
           }
           setUserLocation(location)
-          
+
           // Get place name
           await getPlaceName(location.lat, location.lng)
+
+          // If live sharing is active, update the session
+          if (isLiveSharing && isLiveUpdate && shareableLink) {
+            await updateLiveLocationSession(location)
+          }
         },
         (error) => {
           setLocationError("Unable to get your location. Please enable location services.")
           console.error("Location error:", error)
+          if (isLiveSharing) {
+            console.error("Live location failed to update.")
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       )
     } else {
@@ -73,7 +87,7 @@ export default function SOS() {
   const triggerPhoneSOS = () => {
     // Try different methods to trigger phone's native SOS
     const userAgent = navigator.userAgent.toLowerCase()
-    
+
     if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
       // For iOS devices - provide instructions for Emergency SOS
       alert(`📱 iPhone Emergency SOS:\n\n` +
@@ -101,7 +115,7 @@ export default function SOS() {
   const shareLocation = () => {
     if (userLocation) {
       const locationUrl = `https://maps.google.com/maps?q=${userLocation.lat},${userLocation.lng}`
-      
+
       if (navigator.share) {
         navigator.share({
           title: 'My Current Location - Emergency',
@@ -119,12 +133,13 @@ export default function SOS() {
     }
   }
 
-  const generateShareableLink = async (location) => {
-    // Create a unique session ID for this live location sharing session
+  const createLiveLocationSession = async (location) => {
+    // Generate a unique session ID
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2)
-    
+
     try {
-      // Store the live location session in the backend
+      console.log('Creating live location session:', sessionId)
+
       const response = await fetch('https://ride-along-api.onrender.com/api/live-location', {
         method: 'POST',
         headers: {
@@ -132,36 +147,35 @@ export default function SOS() {
         },
         body: JSON.stringify({
           sessionId,
-          userId: user?.uid,
+          userId: user?.uid || 'anonymous',
           userName: user?.displayName || 'Anonymous User',
           userEmail: user?.email || 'unknown@email.com',
           location,
           placeName: placeName || '',
           message: sosMessage || '',
-          accuracy: 'High' // You can get this from geolocation API if needed
+          accuracy: 'High'
         })
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        const shareableUrl = result.shareableUrl || `${window.location.origin}/live-location/${sessionId}`
         setShareableLink(shareableUrl)
-        console.log('✅ Live location session created:', data)
+        console.log('✅ Live location session created:', result)
         return shareableUrl
       } else {
-        throw new Error('Failed to create live location session')
+        throw new Error(result.message || 'Failed to create live location session')
       }
     } catch (error) {
       console.error('❌ Error creating live location session:', error)
-      // Fallback to client-only link
-      const shareableUrl = `${window.location.origin}/live-location/${sessionId}`
-      setShareableLink(shareableUrl)
-      return shareableUrl
+      alert('Failed to create live location session. Please check your connection and try again.')
+      return null
     }
   }
 
   const updateLiveLocationSession = async (newLocation) => {
-    if (!shareableLink) return
+    if (!shareableLink || !user) return
 
     // Extract session ID from the shareable link
     const sessionId = shareableLink.split('/').pop()
@@ -174,7 +188,7 @@ export default function SOS() {
         },
         body: JSON.stringify({
           sessionId,
-          userId: user?.uid,
+          userId: user?.uid || 'anonymous',
           userName: user?.displayName || 'Anonymous User',
           userEmail: user?.email || 'unknown@email.com',
           location: newLocation,
@@ -194,57 +208,41 @@ export default function SOS() {
     }
   }
 
-  const startLiveLocationSharing = () => {
+  const startLiveLocationSharing = async () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by this browser.')
       return
     }
 
-    setIsLiveSharing(true)
-    
-    // Generate initial shareable link
-    if (userLocation) {
-      generateShareableLink(userLocation)
+    if (!userLocation) {
+      alert('Please wait for your location to be determined first.')
+      return
     }
-    
-    // Update location every 30 seconds
-    const interval = setInterval(() => {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const newLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            timestamp: new Date().toISOString()
-          }
-          setUserLocation(newLocation)
-          
-          // Get updated place name
-          await getPlaceName(newLocation.lat, newLocation.lng)
-          
-          // Update shareable link if needed
-          if (!shareableLink) {
-            await generateShareableLink(newLocation)
-          } else {
-            // Update existing session with new location
-            await updateLiveLocationSession(newLocation)
-          }
-          
-          console.log('Live location update:', newLocation)
-        },
-        (error) => {
-          console.error('Live location error:', error)
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      )
-    }, 30000) // Update every 30 seconds
 
-    setLiveLocationInterval(interval)
-    
-    alert('Live location sharing started! Your location will be updated every 30 seconds.')
+    setIsLiveSharing(true)
+
+    try {
+      // Create initial session
+      const shareableUrl = await createLiveLocationSession(userLocation)
+
+      if (shareableUrl) {
+        console.log('Live location sharing started:', shareableUrl)
+
+        // Set up interval to update location every 30 seconds
+        const interval = setInterval(() => {
+          getCurrentLocation(true) // true flag for live updates
+        }, 30000)
+
+        setLiveLocationInterval(interval)
+      } else {
+        setIsLiveSharing(false)
+        alert('Failed to start live location sharing. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error starting live location sharing:', error)
+      setIsLiveSharing(false)
+      alert('Failed to start live location sharing. Please check your connection.')
+    }
   }
 
   const stopLiveLocationSharing = async () => {
@@ -256,7 +254,7 @@ export default function SOS() {
     // Stop the backend session if it exists
     if (shareableLink && user) {
       const sessionId = shareableLink.split('/').pop()
-      
+
       try {
         await fetch(`https://ride-along-api.onrender.com/api/live-location/${sessionId}`, {
           method: 'DELETE',
@@ -299,7 +297,7 @@ export default function SOS() {
 
   const sendSOSAlert = async () => {
     setIsEmergency(true)
-    
+
     const sosData = {
       userId: user?.uid,
       userName: user?.displayName || 'Unknown User',
@@ -313,14 +311,14 @@ export default function SOS() {
     try {
       // You can implement sending this to your backend API
       console.log('SOS Alert:', sosData)
-      
+
       // For now, we'll show an alert
       alert('SOS Alert sent! Emergency services and your emergency contacts have been notified.')
     } catch (error) {
       console.error('Failed to send SOS alert:', error)
       alert('Failed to send SOS alert. Please try calling emergency services directly.')
     }
-    
+
     setIsEmergency(false)
   }
 
@@ -379,7 +377,7 @@ export default function SOS() {
         {/* Location and SOS Alert */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Location & SOS Alert</h2>
-          
+
           <div className="mb-4">
             <div className="text-sm text-gray-600 mb-2 flex items-center justify-between">
               <span>Your Current Location:</span>
@@ -426,7 +424,7 @@ export default function SOS() {
             >
               📍 Share Current Location
             </button>
-            
+
             {!isLiveSharing ? (
               <button
                 onClick={startLiveLocationSharing}
@@ -444,14 +442,14 @@ export default function SOS() {
               </button>
             )}
           </div>
-          
+
           {isLiveSharing && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
               <div className="text-green-800 text-sm">
                 <strong>Live sharing active:</strong> Your location is being updated every 30 seconds. 
                 This helps emergency responders track your real-time position.
               </div>
-              
+
               {shareableLink && (
                 <div className="mt-3 pt-3 border-t border-green-300">
                   <div className="text-green-700 font-semibold text-sm mb-2">
