@@ -125,12 +125,24 @@ export default function VerificationForm() {
       console.error('Verification submission error:', err);
 
       let errorMessage = 'Unknown error occurred';
-      if (err.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
+      
+      // Handle different types of errors
+      if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        } else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else {
+          errorMessage = JSON.stringify(err.response.data);
+        }
       } else if (err.message) {
         errorMessage = err.message;
+      } else if (typeof err === 'object') {
+        errorMessage = JSON.stringify(err);
       }
 
       alert(`❌ Error: ${errorMessage}`);

@@ -108,16 +108,26 @@ export default function Profile() {
     try {  
       const res = await fetch(`${API_BASE}/save`, {  
         method: 'POST',  
-        headers: { 'Content-Type': 'application/json' },  
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },  
         body: JSON.stringify(details)  
       })  
 
       if (res.ok) {  
+        const responseData = await res.json();
+        console.log('Profile saved successfully:', responseData);
         setSaved(true)  
         setTimeout(() => setSaved(false), 2000)  
+      } else {
+        const errorData = await res.json();
+        console.error('Save failed with status:', res.status, errorData);
+        alert(`Failed to save profile: ${errorData.error || errorData.message || 'Unknown error'}`);
       }  
     } catch (err) {  
-      console.error('Save failed:', err)  
+      console.error('Save failed:', err);
+      alert(`Network error: ${err.message}`);
     }
   }
 
