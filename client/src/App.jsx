@@ -12,7 +12,7 @@ import 'leaflet/dist/leaflet.css';
 
 import Home from './pages/Home.jsx'
 import PostRide from './pages/PostRide.jsx'
-import SearchRides from './pages/SearchRides.jsx'
+import SearchRides from './pages/SearchRide.jsx'
 import RideDetail from './pages/RideDetail.jsx'
 import Profile from './pages/Profile.jsx'
 import SOS from './pages/SOS.jsx'
