@@ -31,13 +31,13 @@ router.post('/', verifyFirebaseToken, upload.array('vehiclePhotos', 5), async (r
     console.log('Vehicle photos:', req.files?.length || 0)
 
     const {
-      from, to, via = [], price, seatsAvailable,
-      driverName, driverContact, vehicleNumber, departureTime
+      from, to, via = [], price, pricePerKm = 8, distance, seatsAvailable,
+      driverName, driverContact, vehicleNumber, car, departureTime
     } = req.body
 
     // Validation
-    if (!from || !to || !price || !seatsAvailable || !driverName || !driverContact || !vehicleNumber || !departureTime) {
-      return res.status(400).json({ error: 'All fields are required' })
+    if (!from || !to || !price || !seatsAvailable || !driverName || !driverContact || !vehicleNumber || !car || !departureTime) {
+      return res.status(400).json({ error: 'All fields including car model are required' })
     }
 
     // Process vehicle photos
@@ -52,8 +52,8 @@ router.post('/', verifyFirebaseToken, upload.array('vehiclePhotos', 5), async (r
     }
 
     const ride = new Ride({
-      from, to, via, price, seatsAvailable,
-      driverName, driverContact, vehicleNumber, departureTime,
+      from, to, via, price, pricePerKm, distance, seatsAvailable,
+      driverName, driverContact, vehicleNumber, car, departureTime,
       vehiclePhotos,
       userId: req.user.uid,
       userEmail: req.user.email

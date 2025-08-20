@@ -23,7 +23,7 @@ export default function RideDetail() {
       if (!res.ok) throw new Error('Ride not found')
       const data = await res.json()
       setRide(data)
-      
+
       // Check if current user has booked this ride
       if (currentUser) {
         checkUserBooking(currentUser.uid)
@@ -142,12 +142,12 @@ export default function RideDetail() {
         {/* Driver Details Section */}
         <div className="bg-zinc-700 p-4 rounded-lg">
           <h3 className="text-xl font-semibold text-blue-300 mb-3">Driver Information</h3>
-          
+
           {/* Driver Name - Always Visible */}
           <div className="mb-2">
             <strong>Driver Name:</strong> {ride.driverName}
           </div>
-          
+
           {/* Contact Details - Conditional */}
           <div className="relative">
             <div className={`${!canSeeDetails ? 'filter blur-sm' : ''}`}>
@@ -155,10 +155,17 @@ export default function RideDetail() {
                 <strong>Contact:</strong> {ride.driverContact}
               </div>
               <div>
-                <strong>Vehicle Number:</strong> {ride.vehicleNumber}
+                <span className="text-zinc-400">Vehicle Number:</span>
+                <div className="font-semibold">{ride.vehicleNumber}</div>
               </div>
+              {ride.car && (
+                <div>
+                  <span className="text-zinc-400">Car Model:</span>
+                  <div className="font-semibold">{ride.car}</div>
+                </div>
+              )}
             </div>
-            
+
             {!canSeeDetails && (
               <div className="absolute inset-0 flex items-center justify-center bg-zinc-700 bg-opacity-80 rounded">
                 <div className="text-center">
@@ -168,7 +175,7 @@ export default function RideDetail() {
               </div>
             )}
           </div>
-          
+
           {canSeeDetails && (
             <div className="mt-3 p-2 bg-green-900 bg-opacity-30 rounded border border-green-500">
               <div className="text-green-400 text-sm">
@@ -210,7 +217,7 @@ export default function RideDetail() {
           >
             {getBookingButtonText()}
           </button>
-          
+
           {/* Additional messaging */}
           {!isLoggedIn && (
             <p className="text-sm text-gray-400 mt-2">Please login to book this ride</p>

@@ -5,12 +5,15 @@ const RideSchema = new mongoose.Schema({
   driverName: { type: String, required: true },
   driverContact: { type: String, required: true },
   vehicleNumber: { type: String, required: true },
+  car: { type: String, required: true },
 
   from: { type: String, required: true },
   to: { type: String, required: true },
   via: { type: [String] }, // optional
 
   price: { type: Number, required: true },
+  pricePerKm: { type: Number, default: 8 },
+  distance: { type: Number },
   seatsAvailable: { type: Number, required: true },
   departureTime: { type: Date, required: true },
 

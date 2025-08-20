@@ -12,7 +12,8 @@ import 'leaflet/dist/leaflet.css';
 
 import Home from './pages/Home.jsx'
 import PostRide from './pages/PostRide.jsx'
-import SearchRides from './pages/SearchRide.jsx'
+import SearchRide from './pages/SearchRide.jsx'
+import Rides from './pages/Rides.jsx'
 import RideDetail from './pages/RideDetail.jsx'
 import Profile from './pages/Profile.jsx'
 import SOS from './pages/SOS.jsx'
@@ -28,6 +29,7 @@ import About from './pages/About.jsx'
 import Support from './pages/Support.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
+import Onboarding from './components/Onboarding'
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -235,6 +237,21 @@ function App() {
   const dropdownRef = useRef()
   const mobileMenuRef = useRef()
   const navigate = useNavigate()
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    const onboardingComplete = localStorage.getItem('onboardingComplete')
+    if (!onboardingComplete) {
+      setShowOnboarding(true)
+    }
+  }, [])
+
+  const handleOnboardingComplete = (data) => {
+    setShowOnboarding(false)
+    // Apply theme and language preferences
+    document.documentElement.className = data.theme === 'light' ? 'light' : 'dark'
+    // Additional logic for language can be added here
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -319,6 +336,9 @@ function App() {
               </Link>
               <Link to="/search" className="text-white hover:text-blue-200 transition font-medium">
                 🔍 Search
+              </Link>
+              <Link to="/rides" className="text-white hover:text-blue-200 transition font-medium">
+                🚗 Rides
               </Link>
               <Link to="/support" className="text-white hover:text-blue-200 transition font-medium">
                 🛟 Support
@@ -458,6 +478,13 @@ function App() {
                   🔍 Search Rides
                 </Link>
                 <Link
+                  to="/rides"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                >
+                  🚗 Rides
+                </Link>
+                <Link
                   to="/support"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
@@ -550,7 +577,8 @@ function App() {
         <Route path="/driver-verification" element={<VerificationForm />} />
         <Route path="/" element={<Home />} />
         <Route path="/post" element={<PostRide />} />
-        <Route path="/search" element={<SearchRides />} />
+        <Route path="/search" element={<SearchRide />} />
+        <Route path="/rides" element={<Rides />} />
         <Route path="/ride/:id" element={<RideDetail />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/sos" element={<SOS />} />
@@ -560,7 +588,7 @@ function App() {
 
         {/* ✅ Live Location Route */}
         <Route path="/live-location/:sessionId" element={<LiveLocation />} />
-        
+
         {/* ✅ Admin Verification Route */}
         <Route path="/admin/verify" element={<AdminVerify />} />
 

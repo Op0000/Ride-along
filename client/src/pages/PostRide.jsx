@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getAuth } from 'firebase/auth'
 import AutocompleteInput from '../components/AutocompleteInput'
 
@@ -7,16 +7,72 @@ export default function PostRide({ onPost }) {
     from: '',
     to: '',
     via: '',
+    pricePerKm: '8',
     price: '',
+    distance: '',
     seatsAvailable: '',
     driverName: '',
     driverContact: '',
     vehicleNumber: '',
+    car: '',
     departureTime: ''
   })
 
   const [vehiclePhotos, setVehiclePhotos] = useState([])
   const [loading, setLoading] = useState(false)
+
+  // Calculate distance and price when from/to changes
+  useEffect(() => {
+    const calculateDistance = async () => {
+      if (formData.from && formData.to) {
+        try {
+          const fromCoords = await getLatLng(formData.from)
+          const toCoords = await getLatLng(formData.to)
+          
+          if (fromCoords && toCoords) {
+            const query = `${fromCoords[1]},${fromCoords[0]};${toCoords[1]},${toCoords[0]}`
+            const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${query}?overview=false`)
+            const data = await res.json()
+            
+            if (data.routes?.[0]?.distance) {
+              const distanceKm = Math.round(data.routes[0].distance / 1000)
+              const calculatedPrice = Math.round(distanceKm * parseFloat(formData.pricePerKm || 8))
+              
+              setFormData(prev => ({
+                ...prev,
+                distance: distanceKm.toString(),
+                price: calculatedPrice.toString()
+              }))
+            }
+          }
+        } catch (error) {
+          console.error('Distance calculation error:', error)
+        }
+      }
+    }
+
+    calculateDistance()
+  }, [formData.from, formData.to, formData.pricePerKm])
+
+  const getLatLng = async (place) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&addressdetails=1`
+      )
+      const data = await res.json()
+      if (data.length === 0) return null
+
+      const location = data[0]
+      const state = location.address?.state || ''
+
+      if (!state.toLowerCase().includes('uttar pradesh')) return null
+
+      return [parseFloat(location.lat), parseFloat(location.lon)]
+    } catch (err) {
+      console.error('Geocoding error:', err)
+      return null
+    }
+  }
 
   const handleChange = (e) => {
     setFormData({
@@ -93,11 +149,14 @@ export default function PostRide({ onPost }) {
           from: '',
           to: '',
           via: '',
+          pricePerKm: '8',
           price: '',
+          distance: '',
           seatsAvailable: '',
           driverName: '',
           driverContact: '',
           vehicleNumber: '',
+          car: '',
           departureTime: ''
         })
         setVehiclePhotos([])
@@ -135,11 +194,41 @@ export default function PostRide({ onPost }) {
         placeholder="Via (comma-separated)"
         className="input"
       />
-      <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="Price (₹)" required className="input" />
+      <div className="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <input 
+          type="number" 
+          name="pricePerKm" 
+          value={formData.pricePerKm} 
+          onChange={handleChange} 
+          placeholder="Price per KM (₹)" 
+          required 
+          className="input" 
+          min="1"
+          step="0.5"
+        />
+        <input 
+          type="text" 
+          name="distance" 
+          value={formData.distance ? `${formData.distance} km` : ''} 
+          placeholder="Distance (auto-calculated)" 
+          readOnly 
+          className="input bg-gray-700 text-gray-300" 
+        />
+        <input 
+          type="number" 
+          name="price" 
+          value={formData.price} 
+          onChange={handleChange} 
+          placeholder="Total Price (₹)" 
+          required 
+          className="input" 
+        />
+      </div>
       <input type="number" name="seatsAvailable" value={formData.seatsAvailable} onChange={handleChange} placeholder="Seats Available" required className="input" />
       <input type="text" name="driverName" value={formData.driverName} onChange={handleChange} placeholder="Driver's Name" required className="input" />
       <input type="text" name="driverContact" value={formData.driverContact} onChange={handleChange} placeholder="Driver Contact" required className="input" />
       <input type="text" name="vehicleNumber" value={formData.vehicleNumber} onChange={handleChange} placeholder="Vehicle Number" required className="input" />
+      <input type="text" name="car" value={formData.car} onChange={handleChange} placeholder="Car Model (e.g., Swift Dzire)" required className="input" />
       <input type="datetime-local" name="departureTime" value={formData.departureTime} onChange={handleChange} required className="input" />
 
       <div className="col-span-full">
