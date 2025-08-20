@@ -121,6 +121,11 @@ export default function RideDetail() {
                     alt={`Vehicle photo ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => window.open(`https://ride-along-api.onrender.com/api/rides/${id}/photo/${index}`, '_blank')}
+                    onError={(e) => {
+                      console.error('Image failed to load:', e.target.src)
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.textContent = 'Image failed to load'
+                    }}
                   />
                   <div className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
                     {index + 1}/{ride.vehiclePhotos.length}

@@ -122,6 +122,37 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// ✅ GET /api/rides/:id/photo/:photoIndex — Serve vehicle photo
+router.get('/:id/photo/:photoIndex', async (req, res) => {
+  try {
+    const { id, photoIndex } = req.params
+    const ride = await Ride.findById(id)
+
+    if (!ride) {
+      return res.status(404).json({ error: 'Ride not found' })
+    }
+
+    const index = parseInt(photoIndex)
+    if (isNaN(index) || index < 0 || index >= ride.vehiclePhotos.length) {
+      return res.status(404).json({ error: 'Photo not found' })
+    }
+
+    const photo = ride.vehiclePhotos[index]
+    const imageBuffer = Buffer.from(photo.data, 'base64')
+
+    res.set({
+      'Content-Type': photo.contentType,
+      'Content-Length': imageBuffer.length,
+      'Cache-Control': 'public, max-age=86400' // Cache for 1 day
+    })
+
+    res.send(imageBuffer)
+  } catch (err) {
+    console.error('Error serving photo:', err)
+    res.status(500).json({ error: 'Error serving photo' })
+  }
+})
+
 // ✅ DELETE /api/rides/:id — Delete a ride (protected route)
 router.delete('/:id', verifyFirebaseToken, async (req, res) => {
   try {

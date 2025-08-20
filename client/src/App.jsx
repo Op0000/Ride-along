@@ -323,6 +323,11 @@ function App() {
               <Link to="/support" className="text-white hover:text-blue-200 transition font-medium">
                 🛟 Support
               </Link>
+              {user && user.email === 'opgamerz2920@gmail.com' && (
+                <Link to="/admin/verify" className="text-orange-300 hover:text-orange-100 transition font-medium">
+                  🔧 Admin
+                </Link>
+              )}
               <Link 
                 to="/sos" 
                 className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-semibold transition transform hover:scale-105 shadow-lg"
@@ -361,6 +366,15 @@ function App() {
                       >
                         🛟 Support Center
                       </Link>
+                      {user.email === 'opgamerz2920@gmail.com' && (
+                        <Link
+                          to="/admin/verify"
+                          onClick={() => setDropdownOpen(false)}
+                          className="block px-4 py-3 hover:bg-orange-50 text-orange-600 hover:text-orange-800 transition border-b border-blue-100"
+                        >
+                          🔧 Admin Panel
+                        </Link>
+                      )}
                       <div className="px-4 py-2 border-b border-blue-100">
                         <p className="text-xs text-blue-500 font-medium mb-2">Legal & Policies</p>
                         <div className="grid grid-cols-1 gap-1">
@@ -450,6 +464,16 @@ function App() {
                 >
                   🛟 Support Center
                 </Link>
+
+                {user && user.email === 'opgamerz2920@gmail.com' && (
+                  <Link
+                    to="/admin/verify"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-3 text-orange-300 hover:bg-orange-600 hover:text-white transition border-b border-blue-600"
+                  >
+                    🔧 Admin Panel
+                  </Link>
+                )}
 
                 {user ? (
                   <>
