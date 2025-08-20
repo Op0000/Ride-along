@@ -21,12 +21,13 @@ const upload = multer({
 })
 
 // Upload verification documents
-router.post('/verification', upload.fields([
+router.post('/documents', upload.fields([
   { name: 'licenseDocument', maxCount: 1 },
-  { name: 'identityDocument', maxCount: 1 }
+  { name: 'identityDocument', maxCount: 1 },
+  { name: 'vehiclePhoto', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { userId } = req.body
+    const userId = req.body.userId || req.user?.uid
 
     console.log('Upload request received for user:', userId)
     console.log('Files received:', req.files ? Object.keys(req.files) : 'No files')
@@ -35,13 +36,18 @@ router.post('/verification', upload.fields([
       return res.status(400).json({ error: 'User ID is required' })
     }
 
-    if (!req.files || (!req.files.licenseDocument && !req.files.identityDocument)) {
+    if (!req.files || (!req.files.licenseDocument && !req.files.identityDocument && !req.files.vehiclePhoto)) {
       return res.status(400).json({ error: 'At least one document is required' })
     }
 
-    const user = await User.findOne({ uid: userId })
+    let user = await User.findOne({ uid: userId })
     if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+      // Create user if not found
+      user = new User({
+        uid: userId,
+        name: 'User',
+        email: 'user@example.com'
+      })
     }
 
     // Initialize verification object if it doesn't exist
@@ -75,6 +81,17 @@ router.post('/verification', upload.fields([
       }
     }
 
+    if (req.files.vehiclePhoto) {
+      const vehicleFile = req.files.vehiclePhoto[0]
+      console.log('Processing vehicle photo:', vehicleFile.originalname)
+      user.verification.documents.vehiclePhoto = {
+        data: vehicleFile.buffer.toString('base64'),
+        contentType: vehicleFile.mimetype,
+        filename: vehicleFile.originalname,
+        uploadedAt: new Date()
+      }
+    }
+
     user.verification.status = 'pending'
     user.verification.submittedAt = new Date()
 
@@ -90,7 +107,8 @@ router.post('/verification', upload.fields([
         submittedAt: user.verification.submittedAt,
         documents: {
           licenseDocument: user.verification.documents.licenseDocument ? 'uploaded' : null,
-          identityDocument: user.verification.documents.identityDocument ? 'uploaded' : null
+          identityDocument: user.verification.documents.identityDocument ? 'uploaded' : null,
+          vehiclePhoto: user.verification.documents.vehiclePhoto ? 'uploaded' : null
         }
       }
     })

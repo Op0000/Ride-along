@@ -1,36 +1,74 @@
 import express from 'express'
+import multer from 'multer'
 import Ride from '../models/Ride.js'
 import Booking from '../models/Booking.js'
 import { verifyFirebaseToken } from '../middleware/verifyFirebaseToken.js'
 import User from '../models/User.js'
 
+// Configure multer for vehicle photos
+const storage = multer.memoryStorage()
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit per photo
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG images are allowed'), false)
+    }
+  }
+})
+
 const router = express.Router()
 
-// ✅ POST /api/rides — Create a new ride (protected + driver verification)
-router.post('/', verifyFirebaseToken, async (req, res) => {
+// ✅ POST /api/rides - Create a new ride (public, no verification required)
+router.post('/', verifyFirebaseToken, upload.array('vehiclePhotos', 5), async (req, res) => {
   try {
-    const decodedUser = req.user  // From Firebase token
-    const dbUser = await User.findOne({ uid: decodedUser.uid })
+    console.log('🚗 Creating new ride...')
+    console.log('Request body:', req.body)
+    console.log('User from token:', req.user)
+    console.log('Vehicle photos:', req.files?.length || 0)
 
-    if (!dbUser) {
-      return res.status(404).json({ error: 'User not found' })
+    const {
+      from, to, via = [], price, seatsAvailable,
+      driverName, driverContact, vehicleNumber, departureTime
+    } = req.body
+
+    // Validation
+    if (!from || !to || !price || !seatsAvailable || !driverName || !driverContact || !vehicleNumber || !departureTime) {
+      return res.status(400).json({ error: 'All fields are required' })
     }
 
-    // ⛔ Block ride posting if not a verified driver
-    if (!dbUser.driverVerification?.isVerified) {
-      return res.status(403).json({ error: 'Driver verification required to post a ride.' })
+    // Process vehicle photos
+    let vehiclePhotos = []
+    if (req.files && req.files.length > 0) {
+      vehiclePhotos = req.files.map(file => ({
+        data: file.buffer.toString('base64'),
+        contentType: file.mimetype,
+        filename: file.originalname,
+        uploadedAt: new Date()
+      }))
     }
 
     const ride = new Ride({
-      ...req.body,
-      userId: dbUser.uid,
-      userEmail: dbUser.email
+      from, to, via, price, seatsAvailable,
+      driverName, driverContact, vehicleNumber, departureTime,
+      vehiclePhotos,
+      userId: req.user.uid,
+      userEmail: req.user.email
     })
 
     await ride.save()
-    res.status(201).json({ message: 'Ride posted!', ride })
-  } catch (err) {
-    res.status(400).json({ error: err.message })
+    console.log('✅ Ride created successfully:', ride._id)
+
+    res.status(201).json({
+      message: 'Ride posted successfully!',
+      ride
+    })
+  } catch (error) {
+    console.error('❌ Error creating ride:', error)
+    res.status(500).json({ error: 'Failed to create ride', details: error.message })
   }
 })
 
@@ -88,7 +126,7 @@ router.get('/:id', async (req, res) => {
 router.delete('/:id', verifyFirebaseToken, async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.id)
-    
+
     if (!ride) {
       return res.status(404).json({ error: 'Ride not found' })
     }

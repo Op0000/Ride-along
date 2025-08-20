@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose'
 
 const RideSchema = new mongoose.Schema({
@@ -12,6 +13,14 @@ const RideSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   seatsAvailable: { type: Number, required: true },
   departureTime: { type: Date, required: true },
+
+  // Vehicle photos
+  vehiclePhotos: [{
+    data: String,
+    contentType: String,
+    filename: String,
+    uploadedAt: { type: Date, default: Date.now }
+  }],
 
   // ✅ Firebase Auth User Info
   userId: { type: String, required: true },

@@ -7,10 +7,9 @@ export default function VerificationForm() {
   const user = auth.currentUser
 
   const [documents, setDocuments] = useState({
-    idProof: null,
-    license: null,
-    rcBook: null,
-    profilePhoto: null
+    licenseDocument: null,
+    identityDocument: null,
+    vehiclePhoto: null
   })
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState({})
@@ -72,8 +71,8 @@ export default function VerificationForm() {
       return
     }
 
-    // Check if all documents are selected using the original state structure
-    if (!documents.idProof || !documents.license || !documents.rcBook || !documents.profilePhoto) {
+    // Check if all documents are selected
+    if (!documents.licenseDocument || !documents.identityDocument || !documents.vehiclePhoto) {
       alert('Please select all required documents')
       return
     }
@@ -87,10 +86,10 @@ export default function VerificationForm() {
 
       // Create FormData for file upload
       const formData = new FormData()
-      formData.append('idProof', documents.idProof)
-      formData.append('license', documents.license)
-      formData.append('rcBook', documents.rcBook)
-      formData.append('profilePhoto', documents.profilePhoto)
+      formData.append('userId', user.uid)
+      formData.append('licenseDocument', documents.licenseDocument)
+      formData.append('identityDocument', documents.identityDocument)
+      formData.append('vehiclePhoto', documents.vehiclePhoto)
 
       // Upload documents to server
       // The URL in the changes is different from the original. Using the URL from the original code.
@@ -119,10 +118,9 @@ export default function VerificationForm() {
         alert('✅ Verification documents submitted successfully! Your documents are under review.')
         // Reset form
         setDocuments({
-          idProof: null,
-          license: null,
-          rcBook: null,
-          profilePhoto: null
+          licenseDocument: null,
+          identityDocument: null,
+          vehiclePhoto: null
         })
         // Refresh page to show updated verification status
         window.location.reload()
@@ -139,10 +137,9 @@ export default function VerificationForm() {
   }
 
   const documentLabels = {
-    idProof: 'ID Proof (Aadhar/PAN/Passport)',
-    license: 'Driving License',
-    rcBook: 'RC Book (Vehicle Registration)',
-    profilePhoto: 'Profile Photo'
+    licenseDocument: 'Driving License',
+    identityDocument: 'ID Proof (Aadhar/PAN/Passport)',
+    vehiclePhoto: 'Vehicle Photo'
   }
 
   const renderFileInput = (docType) => (

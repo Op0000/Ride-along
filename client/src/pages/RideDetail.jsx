@@ -109,6 +109,31 @@ export default function RideDetail() {
         </div>
         <div><strong>Departure Time:</strong> {new Date(ride.departureTime).toLocaleString()}</div>
 
+        {/* Vehicle Photos Section */}
+        {ride.vehiclePhotos && ride.vehiclePhotos.length > 0 && (
+          <div className="bg-zinc-700 p-4 rounded-lg">
+            <h3 className="text-xl font-semibold text-blue-300 mb-3">🚗 Vehicle Photos</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {ride.vehiclePhotos.map((photo, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={`https://ride-along-api.onrender.com/api/rides/${id}/photo/${index}`}
+                    alt={`Vehicle photo ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(`https://ride-along-api.onrender.com/api/rides/${id}/photo/${index}`, '_blank')}
+                  />
+                  <div className="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
+                    {index + 1}/{ride.vehiclePhotos.length}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-sm text-gray-400 mt-2">
+              Click on any photo to view in full size
+            </div>
+          </div>
+        )}
+
         {/* Driver Details Section */}
         <div className="bg-zinc-700 p-4 rounded-lg">
           <h3 className="text-xl font-semibold text-blue-300 mb-3">Driver Information</h3>
