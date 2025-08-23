@@ -13,18 +13,8 @@ export default function VerificationForm() {
   })
   const [uploading, setUploading] = useState(false)
   const [dragActive, setDragActive] = useState({})
-  // State for error messages
   const [error, setError] = useState('')
-  // State for verification status (e.g., 'pending', 'approved', 'rejected')
-  const [verificationStatus, setVerificationStatus] = useState('')
-
-  // Refs for file inputs to allow programmatic clearing
-  const licenseInputRef = null // Placeholder, assuming these would be defined if the provided changes were more complete
-  const identityInputRef = null // Placeholder, assuming these would be defined if the provided changes were more complete
-  // Placeholder for licenseDocument and identityDocument, as these are not in the original code but used in the changes.
-  // In a real scenario, these would be part of the component's state.
-  const licenseDocument = null
-  const identityDocument = null
+  const [success, setSuccess] = useState('')
 
 
   const handleFileSelect = (docType, file) => {
@@ -57,28 +47,21 @@ export default function VerificationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // This block of code from the changes is not directly applicable to the original component's state structure.
-    // The original component uses `documents.idProof`, `documents.license`, etc., not `licenseDocument` or `identityDocument`.
-    // Therefore, this check is commented out to avoid introducing undefined states.
-    // if (!licenseDocument && !identityDocument) {
-    //   setError('Please select at least one document to upload')
-    //   return
-    // }
+    setError('')
+    setSuccess('')
 
     if (!user) {
-      alert('Please log in to submit verification documents')
+      setError('Please log in to submit verification documents')
       return
     }
 
     // Check if all documents are selected
     if (!documents.licenseDocument || !documents.identityDocument || !documents.vehiclePhoto) {
-      alert('Please select all required documents')
+      setError('Please select all required documents')
       return
     }
 
     setUploading(true)
-    setError('') // Clear previous errors
 
     try {
       // Get Firebase ID token
@@ -86,14 +69,12 @@ export default function VerificationForm() {
 
       // Create FormData for file upload
       const formData = new FormData()
-      formData.append('userId', user.uid)
       formData.append('licenseDocument', documents.licenseDocument)
       formData.append('identityDocument', documents.identityDocument)
       formData.append('vehiclePhoto', documents.vehiclePhoto)
 
       // Upload documents to server
-      // The URL in the changes is different from the original. Using the URL from the original code.
-      const uploadResponse = await fetch(`${API_BASE}/api/upload/documents`, {
+      const uploadResponse = await fetch(`${API_BASE}/api/verify/submit`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -115,22 +96,28 @@ export default function VerificationForm() {
       const uploadData = await uploadResponse.json()
 
       if (uploadData.success) {
-        alert('✅ Verification documents submitted successfully! Your documents are under review.')
+        setSuccess('✅ Verification documents submitted successfully! Your documents are under review.')
         // Reset form
         setDocuments({
           licenseDocument: null,
           identityDocument: null,
           vehiclePhoto: null
         })
-        // Refresh page to show updated verification status
-        window.location.reload()
+        // Clear file inputs
+        const fileInputs = document.querySelectorAll('input[type="file"]')
+        fileInputs.forEach(input => input.value = '')
+        
+        // Refresh page after delay to show updated verification status
+        setTimeout(() => {
+          window.location.reload()
+        }, 2000)
       } else {
         throw new Error(uploadData.error || 'Upload failed')
       }
 
     } catch (error) {
       console.error('Verification submission error:', error)
-      alert(`❌ Error: ${error.message}`)
+      setError(`❌ Error: ${error.message}`)
     } finally {
       setUploading(false)
     }
@@ -227,6 +214,12 @@ export default function VerificationForm() {
         {error && (
           <div className="text-red-400 text-sm mb-4 p-3 bg-red-900 bg-opacity-20 rounded">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="text-green-400 text-sm mb-4 p-3 bg-green-900 bg-opacity-20 rounded">
+            {success}
           </div>
         )}
 

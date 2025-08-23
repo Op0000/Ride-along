@@ -240,18 +240,17 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingLoading, setOnboardingLoading] = useState(true)
 
-  useEffect(() => {
-    const onboardingComplete = localStorage.getItem('onboardingComplete')
-    if (!onboardingComplete) {
-      setShowOnboarding(true)
-    }
-  }, [])
-
   const handleOnboardingComplete = (data) => {
     setShowOnboarding(false)
     // Apply theme and language preferences
-    document.documentElement.className = data.theme === 'light' ? 'light' : 'dark'
-    // Additional logic for language can be added here
+    if (data.theme === 'light') {
+      document.documentElement.classList.add('light')
+      document.documentElement.classList.remove('dark')
+    } else {
+      document.documentElement.classList.add('dark')
+      document.documentElement.classList.remove('light')
+    }
+    document.documentElement.setAttribute('data-theme', data.theme)
   }
 
   useEffect(() => {
@@ -282,9 +281,12 @@ function App() {
       const hasCompletedOnboarding = localStorage.getItem(`onboarding_${user.uid}`)
       if (!hasCompletedOnboarding) {
         setShowOnboarding(true)
+      } else {
+        setShowOnboarding(false)
       }
       setOnboardingLoading(false)
     } else if (!loading) {
+      setShowOnboarding(false)
       setOnboardingLoading(false)
     }
   }, [user, loading])

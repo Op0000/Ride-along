@@ -1,9 +1,11 @@
+
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { getAuth } from 'firebase/auth'
 import { API_BASE } from '../utils/api'
 
 export default function Onboarding({ onComplete }) {
-  const { user } = useAuth()
+  const auth = getAuth()
+  const user = auth.currentUser
   const [currentStep, setCurrentStep] = useState(0)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -44,7 +46,7 @@ export default function Onboarding({ onComplete }) {
         const token = await user.getIdToken()
 
         // Save user profile
-        await fetch(`${API_BASE}/api/users/profile`, {
+        const profileResponse = await fetch(`${API_BASE}/api/users/profile`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -57,15 +59,33 @@ export default function Onboarding({ onComplete }) {
           })
         })
 
+        if (!profileResponse.ok) {
+          throw new Error('Failed to save profile')
+        }
+
         // Save theme preference
         localStorage.setItem('theme', formData.theme)
         document.documentElement.setAttribute('data-theme', formData.theme)
+        if (formData.theme === 'light') {
+          document.documentElement.classList.add('light')
+          document.documentElement.classList.remove('dark')
+        } else {
+          document.documentElement.classList.add('dark')
+          document.documentElement.classList.remove('light')
+        }
 
         // Save language preference
         localStorage.setItem('language', formData.language)
+
+        // Mark onboarding as complete for this user
+        localStorage.setItem(`onboarding_${user.uid}`, 'completed')
       }
 
-      onComplete()
+      // Call the completion callback
+      onComplete({
+        theme: formData.theme,
+        language: formData.language
+      })
     } catch (error) {
       console.error('Error completing onboarding:', error)
       alert('Error completing setup. Please try again.')
@@ -76,7 +96,7 @@ export default function Onboarding({ onComplete }) {
 
   const isStepValid = () => {
     if (currentStep === 0) {
-      return formData.name.trim() && formData.phone.trim() && formData.age.trim()
+      return formData.name.trim() && formData.phone.trim() && formData.age.trim() && parseInt(formData.age) >= 18
     }
     return true
   }
@@ -110,14 +130,14 @@ export default function Onboarding({ onComplete }) {
           <button
             onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
             disabled={currentStep === 0 || loading}
-            className="px-4 py-2 text-gray-400 hover:text-white disabled:opacity-50"
+            className="px-4 py-2 text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Back
           </button>
           <button
             onClick={handleNext}
             disabled={!isStepValid() || loading}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg"
           >
             {loading ? 'Saving...' : currentStep === steps.length - 1 ? 'Complete' : 'Next'}
           </button>
@@ -138,7 +158,8 @@ function ProfileStep({ formData, setFormData }) {
           type="text"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Enter your full name"
           required
         />
       </div>
@@ -150,7 +171,7 @@ function ProfileStep({ formData, setFormData }) {
           type="tel"
           value={formData.phone}
           onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
           placeholder="e.g., 9876543210"
           required
         />
@@ -165,7 +186,8 @@ function ProfileStep({ formData, setFormData }) {
           max="100"
           value={formData.age}
           onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          placeholder="Minimum age 18"
           required
         />
       </div>
@@ -179,8 +201,9 @@ function ThemeStep({ formData, setFormData }) {
       <p className="text-gray-300">Choose your preferred theme</p>
       <div className="grid grid-cols-2 gap-4">
         <button
+          type="button"
           onClick={() => setFormData(prev => ({ ...prev, theme: 'dark' }))}
-          className={`p-4 rounded-lg border-2 ${
+          className={`p-4 rounded-lg border-2 transition-all ${
             formData.theme === 'dark' 
               ? 'border-blue-500 bg-blue-900 bg-opacity-20' 
               : 'border-gray-600 hover:border-gray-500'
@@ -190,8 +213,9 @@ function ThemeStep({ formData, setFormData }) {
           <span className="text-white">Dark Mode</span>
         </button>
         <button
+          type="button"
           onClick={() => setFormData(prev => ({ ...prev, theme: 'light' }))}
-          className={`p-4 rounded-lg border-2 ${
+          className={`p-4 rounded-lg border-2 transition-all ${
             formData.theme === 'light' 
               ? 'border-blue-500 bg-blue-900 bg-opacity-20' 
               : 'border-gray-600 hover:border-gray-500'
@@ -224,8 +248,9 @@ function LanguageStep({ formData, setFormData }) {
         {languages.map(lang => (
           <button
             key={lang.code}
+            type="button"
             onClick={() => setFormData(prev => ({ ...prev, language: lang.code }))}
-            className={`w-full p-3 rounded-lg border text-left ${
+            className={`w-full p-3 rounded-lg border text-left transition-all ${
               formData.language === lang.code
                 ? 'border-blue-500 bg-blue-900 bg-opacity-20'
                 : 'border-gray-600 hover:border-gray-500'
