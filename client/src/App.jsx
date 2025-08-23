@@ -30,6 +30,8 @@ import Support from './pages/Support.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
 import Onboarding from './components/Onboarding'
+import BlogList from './components/BlogList.jsx'
+import BlogPost from './components/BlogPost.jsx'
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -340,6 +342,9 @@ function App() {
               <Link to="/rides" className="text-white hover:text-blue-200 transition font-medium">
                 🚗 Rides
               </Link>
+              <Link to="/blog" className="text-white hover:text-blue-200 transition font-medium">
+                📚 Blog
+              </Link>
               <Link to="/support" className="text-white hover:text-blue-200 transition font-medium">
                 🛟 Support
               </Link>
@@ -485,6 +490,13 @@ function App() {
                   🚗 Rides
                 </Link>
                 <Link
+                  to="/blog"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
+                >
+                  📚 Blog
+                </Link>
+                <Link
                   to="/support"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-4 py-3 text-white hover:bg-blue-600 transition border-b border-blue-600"
@@ -598,6 +610,10 @@ function App() {
         <Route path="/refund" element={<Refund />} />
         <Route path="/about" element={<About />} />
         <Route path="/support" element={<Support />} />
+
+        {/* ✅ Blog Routes */}
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
 
         {/* ✅ 404 Route - Must be last */}
         <Route path="*" element={<NotFound />} />
