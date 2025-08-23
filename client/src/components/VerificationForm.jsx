@@ -142,31 +142,43 @@ export default function VerificationForm() {
     vehiclePhoto: 'Vehicle Photo'
   }
 
-  const renderFileInput = (docType) => (
+  const handleDragOver = (e, docType) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(prev => ({ ...prev, [docType]: true }))
+  }
+
+  const handleDragLeave = (e, docType) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(prev => ({ ...prev, [docType]: false }))
+  }
+
+
+  const renderFileUpload = (docType) => (
     <div key={docType} className="mb-4">
-      <label className="block text-sm font-medium text-purple-300 mb-2">
+      <label className="block text-sm font-medium text-gray-300 mb-2">
         {documentLabels[docType]} *
       </label>
-
       <div
-        className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
           dragActive[docType] 
-            ? 'border-purple-400 bg-purple-900/20' 
-            : documents[docType]
-            ? 'border-green-400 bg-green-900/20'
-            : 'border-zinc-600 bg-zinc-700/50'
+            ? 'border-purple-400 bg-purple-900 bg-opacity-20' 
+            : documents[docType] 
+              ? 'border-green-400 bg-green-900 bg-opacity-20'
+              : 'border-gray-600 hover:border-purple-400'
         }`}
-        onDragEnter={(e) => handleDrag(e, docType)}
-        onDragLeave={(e) => handleDrag(e, docType)}
-        onDragOver={(e) => handleDrag(e, docType)}
+        onDragOver={(e) => handleDragOver(e, docType)}
+        onDragLeave={(e) => handleDragLeave(e, docType)}
         onDrop={(e) => handleDrop(e, docType)}
+        onClick={() => document.getElementById(`file-${docType}`).click()}
       >
         <input
           type="file"
-          accept="image/*"
-          onChange={(e) => handleFileSelect(docType, e.target.files[0])}
-          className="hidden"
           id={`file-${docType}`}
+          className="hidden"
+          accept="image/*,application/pdf"
+          onChange={(e) => e.target.files[0] && handleFileSelect(docType, e.target.files[0])}
         />
 
         {documents[docType] ? (
@@ -178,7 +190,10 @@ export default function VerificationForm() {
             </div>
             <button
               type="button"
-              onClick={() => setDocuments(prev => ({ ...prev, [docType]: null }))}
+              onClick={(e) => {
+                e.stopPropagation()
+                setDocuments(prev => ({ ...prev, [docType]: null }))
+              }}
               className="mt-2 text-red-400 hover:text-red-300 text-xs underline"
             >
               Remove
@@ -207,33 +222,22 @@ export default function VerificationForm() {
       </h3>
 
       <form onSubmit={handleSubmit}>
-        {Object.keys(documentLabels).map(renderFileInput)}
+        {Object.keys(documentLabels).map(renderFileUpload)}
+
+        {error && (
+          <div className="text-red-400 text-sm mb-4 p-3 bg-red-900 bg-opacity-20 rounded">
+            {error}
+          </div>
+        )}
 
         <button
           type="submit"
-          disabled={uploading || !user}
-          className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
-            uploading
-              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-              : 'bg-purple-600 hover:bg-purple-700 text-white'
-          }`}
+          disabled={uploading || !documents.licenseDocument || !documents.identityDocument || !documents.vehiclePhoto}
+          className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-medium py-2 px-4 rounded transition-colors"
         >
-          {uploading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Submitting Documents...
-            </div>
-          ) : (
-            'Submit for Verification'
-          )}
+          {uploading ? 'Uploading...' : 'Submit Documents'}
         </button>
       </form>
-
-      <div className="mt-4 text-sm text-gray-400">
-        <p>• All documents are required for verification</p>
-        <p>• Documents will be reviewed within 24-48 hours</p>
-        <p>• You'll be notified once verification is complete</p>
-      </div>
     </div>
   )
 }

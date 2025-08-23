@@ -1,33 +1,31 @@
-
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import { API_BASE } from '../utils/api'
 
 export default function Onboarding({ onComplete }) {
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(0)
-  const [onboardingData, setOnboardingData] = useState({
-    name: '',
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    name: user?.displayName || '',
     phone: '',
     age: '',
-    gender: '',
     theme: 'dark',
     language: 'en'
   })
 
   const steps = [
     {
-      title: 'Welcome to Ride Along! 🚗',
-      subtitle: 'Let\'s get you set up in just a few steps',
-      component: WelcomeStep
-    },
-    {
-      title: 'Personal Information',
-      subtitle: 'Help us know you better',
+      title: 'Complete Your Profile',
       component: ProfileStep
     },
     {
-      title: 'Preferences',
-      subtitle: 'Customize your experience',
-      component: PreferencesStep
+      title: 'Choose Your Theme',
+      component: ThemeStep
+    },
+    {
+      title: 'Select Language',
+      component: LanguageStep
     }
   ]
 
@@ -35,218 +33,210 @@ export default function Onboarding({ onComplete }) {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
-      // Save onboarding data and complete
-      localStorage.setItem('onboardingComplete', 'true')
-      localStorage.setItem('userPreferences', JSON.stringify(onboardingData))
-      onComplete(onboardingData)
+      handleComplete()
     }
   }
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
+  const handleComplete = async () => {
+    setLoading(true)
+    try {
+      if (user) {
+        const token = await user.getIdToken()
+
+        // Save user profile
+        await fetch(`${API_BASE}/api/users/profile`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            phone: formData.phone,
+            age: parseInt(formData.age)
+          })
+        })
+
+        // Save theme preference
+        localStorage.setItem('theme', formData.theme)
+        document.documentElement.setAttribute('data-theme', formData.theme)
+
+        // Save language preference
+        localStorage.setItem('language', formData.language)
+      }
+
+      onComplete()
+    } catch (error) {
+      console.error('Error completing onboarding:', error)
+      alert('Error completing setup. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const updateData = (newData) => {
-    setOnboardingData(prev => ({ ...prev, ...newData }))
+  const isStepValid = () => {
+    if (currentStep === 0) {
+      return formData.name.trim() && formData.phone.trim() && formData.age.trim()
+    }
+    return true
   }
 
   const CurrentStepComponent = steps[currentStep].component
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-zinc-800 rounded-xl p-8 max-w-md w-full"
-      >
-        {/* Progress bar */}
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-gray-800 rounded-lg p-6">
         <div className="mb-6">
-          <div className="flex justify-between text-sm text-zinc-400 mb-2">
-            <span>Step {currentStep + 1} of {steps.length}</span>
-            <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-white">{steps[currentStep].title}</h2>
+            <span className="text-sm text-gray-400">
+              {currentStep + 1} of {steps.length}
+            </span>
           </div>
-          <div className="w-full bg-zinc-700 rounded-full h-2">
+          <div className="w-full bg-gray-700 rounded-full h-2">
             <div 
-              className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-            />
+            ></div>
           </div>
         </div>
 
-        {/* Step content */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-purple-400 mb-2">
-            {steps[currentStep].title}
-          </h2>
-          <p className="text-zinc-400">
-            {steps[currentStep].subtitle}
-          </p>
-        </div>
+        <CurrentStepComponent 
+          formData={formData}
+          setFormData={setFormData}
+        />
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -20, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <CurrentStepComponent 
-              data={onboardingData} 
-              updateData={updateData}
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation buttons */}
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-between mt-6">
           <button
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className={`px-6 py-2 rounded-lg ${
-              currentStep === 0 
-                ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed' 
-                : 'bg-zinc-600 hover:bg-zinc-500 text-white'
-            }`}
+            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+            disabled={currentStep === 0 || loading}
+            className="px-4 py-2 text-gray-400 hover:text-white disabled:opacity-50"
           >
             Back
           </button>
           <button
             onClick={handleNext}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+            disabled={!isStepValid() || loading}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg"
           >
-            {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-function WelcomeStep() {
-  return (
-    <div className="text-center space-y-4">
-      <div className="text-6xl mb-4">🎉</div>
-      <p className="text-zinc-300">
-        Welcome to the smartest way to share rides in Uttar Pradesh! 
-        Let's set up your profile and preferences.
-      </p>
-    </div>
-  )
-}
-
-function ProfileStep({ data, updateData }) {
-  const handleChange = (e) => {
-    updateData({ [e.target.name]: e.target.value })
-  }
-
-  return (
-    <div className="space-y-4">
-      <input
-        type="text"
-        name="name"
-        value={data.name}
-        onChange={handleChange}
-        placeholder="Your Name"
-        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none"
-        required
-      />
-      <input
-        type="tel"
-        name="phone"
-        value={data.phone}
-        onChange={handleChange}
-        placeholder="Phone Number"
-        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none"
-        required
-      />
-      <input
-        type="number"
-        name="age"
-        value={data.age}
-        onChange={handleChange}
-        placeholder="Age"
-        min="18"
-        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none"
-        required
-      />
-      <select
-        name="gender"
-        value={data.gender}
-        onChange={handleChange}
-        className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none"
-        required
-      >
-        <option value="">Select Gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
-      </select>
-    </div>
-  )
-}
-
-function PreferencesStep({ data, updateData }) {
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
-    { code: 'ur', name: 'اردو', flag: '🇵🇰' },
-    { code: 'bn', name: 'বাংলা', flag: '🇧🇩' },
-    { code: 'te', name: 'తెలుగు', flag: '🇮🇳' },
-    { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
-    { code: 'gu', name: 'ગુજરાતી', flag: '🇮🇳' },
-    { code: 'mr', name: 'मराठी', flag: '🇮🇳' },
-    { code: 'kn', name: 'ಕನ್ನಡ', flag: '🇮🇳' },
-    { code: 'ml', name: 'മലയാളം', flag: '🇮🇳' }
-  ]
-
-  return (
-    <div className="space-y-6">
-      {/* Theme Selection */}
-      <div>
-        <label className="block text-purple-300 mb-3 font-medium">Choose Theme</label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => updateData({ theme: 'dark' })}
-            className={`p-4 rounded-lg border-2 transition-all ${
-              data.theme === 'dark' 
-                ? 'border-purple-500 bg-purple-900 bg-opacity-30' 
-                : 'border-zinc-600 bg-zinc-700'
-            }`}
-          >
-            <div className="text-2xl mb-2">🌙</div>
-            <div className="text-sm">Dark Mode</div>
-          </button>
-          <button
-            onClick={() => updateData({ theme: 'light' })}
-            className={`p-4 rounded-lg border-2 transition-all ${
-              data.theme === 'light' 
-                ? 'border-purple-500 bg-purple-900 bg-opacity-30' 
-                : 'border-zinc-600 bg-zinc-700'
-            }`}
-          >
-            <div className="text-2xl mb-2">☀️</div>
-            <div className="text-sm">Light Mode</div>
+            {loading ? 'Saving...' : currentStep === steps.length - 1 ? 'Complete' : 'Next'}
           </button>
         </div>
       </div>
+    </div>
+  )
+}
 
-      {/* Language Selection */}
+function ProfileStep({ formData, setFormData }) {
+  return (
+    <div className="space-y-4">
       <div>
-        <label className="block text-purple-300 mb-3 font-medium">Choose Language</label>
-        <select
-          value={data.language}
-          onChange={(e) => updateData({ language: e.target.value })}
-          className="w-full bg-zinc-700 text-white px-4 py-3 rounded-lg border border-zinc-600 focus:border-purple-500 focus:outline-none"
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Full Name *
+        </label>
+        <input
+          type="text"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Phone Number *
+        </label>
+        <input
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          placeholder="e.g., 9876543210"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Age *
+        </label>
+        <input
+          type="number"
+          min="18"
+          max="100"
+          value={formData.age}
+          onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+    </div>
+  )
+}
+
+function ThemeStep({ formData, setFormData }) {
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-300">Choose your preferred theme</p>
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={() => setFormData(prev => ({ ...prev, theme: 'dark' }))}
+          className={`p-4 rounded-lg border-2 ${
+            formData.theme === 'dark' 
+              ? 'border-blue-500 bg-blue-900 bg-opacity-20' 
+              : 'border-gray-600 hover:border-gray-500'
+          }`}
         >
-          {languages.map(lang => (
-            <option key={lang.code} value={lang.code}>
-              {lang.flag} {lang.name}
-            </option>
-          ))}
-        </select>
+          <div className="bg-gray-800 h-16 rounded mb-2"></div>
+          <span className="text-white">Dark Mode</span>
+        </button>
+        <button
+          onClick={() => setFormData(prev => ({ ...prev, theme: 'light' }))}
+          className={`p-4 rounded-lg border-2 ${
+            formData.theme === 'light' 
+              ? 'border-blue-500 bg-blue-900 bg-opacity-20' 
+              : 'border-gray-600 hover:border-gray-500'
+          }`}
+        >
+          <div className="bg-white h-16 rounded mb-2 border"></div>
+          <span className="text-white">Light Mode</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function LanguageStep({ formData, setFormData }) {
+  const languages = [
+    { code: 'en', name: 'English', native: 'English' },
+    { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+    { code: 'bn', name: 'Bengali', native: 'বাংলা' },
+    { code: 'te', name: 'Telugu', native: 'తెలుగు' },
+    { code: 'mr', name: 'Marathi', native: 'मराठी' },
+    { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
+    { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી' },
+    { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' }
+  ]
+
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-300">Select your preferred language</p>
+      <div className="max-h-48 overflow-y-auto space-y-2">
+        {languages.map(lang => (
+          <button
+            key={lang.code}
+            onClick={() => setFormData(prev => ({ ...prev, language: lang.code }))}
+            className={`w-full p-3 rounded-lg border text-left ${
+              formData.language === lang.code
+                ? 'border-blue-500 bg-blue-900 bg-opacity-20'
+                : 'border-gray-600 hover:border-gray-500'
+            }`}
+          >
+            <div className="flex justify-between items-center">
+              <span className="text-white">{lang.name}</span>
+              <span className="text-gray-400 text-sm">{lang.native}</span>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   )

@@ -238,6 +238,7 @@ function App() {
   const mobileMenuRef = useRef()
   const navigate = useNavigate()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingLoading, setOnboardingLoading] = useState(true)
 
   useEffect(() => {
     const onboardingComplete = localStorage.getItem('onboardingComplete')
@@ -274,6 +275,20 @@ function App() {
     })
     return () => unsubscribe()
   }, [auth])
+
+  useEffect(() => {
+    if (user && !loading) {
+      // Check if user needs onboarding
+      const hasCompletedOnboarding = localStorage.getItem(`onboarding_${user.uid}`)
+      if (!hasCompletedOnboarding) {
+        setShowOnboarding(true)
+      }
+      setOnboardingLoading(false)
+    } else if (!loading) {
+      setOnboardingLoading(false)
+    }
+  }, [user, loading])
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -316,7 +331,11 @@ function App() {
     }
   }
 
-  if (loading) return <div className="text-center mt-10 text-white">Loading...</div>
+  if (loading || onboardingLoading) return <div className="text-center mt-10 text-white">Loading...</div>
+
+  if (showOnboarding && user) {
+    return <Onboarding onComplete={handleOnboardingComplete} />
+  }
 
   return (
     <div>
