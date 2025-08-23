@@ -29,7 +29,7 @@ import About from './pages/About.jsx'
 import Support from './pages/Support.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
-
+import Onboarding from './components/Onboarding'
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -237,7 +237,21 @@ function App() {
   const dropdownRef = useRef()
   const mobileMenuRef = useRef()
   const navigate = useNavigate()
-  
+  const [showOnboarding, setShowOnboarding] = useState(false)
+
+  useEffect(() => {
+    const onboardingComplete = localStorage.getItem('onboardingComplete')
+    if (!onboardingComplete) {
+      setShowOnboarding(true)
+    }
+  }, [])
+
+  const handleOnboardingComplete = (data) => {
+    setShowOnboarding(false)
+    // Apply theme and language preferences
+    document.documentElement.className = data.theme === 'light' ? 'light' : 'dark'
+    // Additional logic for language can be added here
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -260,9 +274,6 @@ function App() {
     })
     return () => unsubscribe()
   }, [auth])
-
-  
-
 
   useEffect(() => {
     const handleClickOutside = (e) => {

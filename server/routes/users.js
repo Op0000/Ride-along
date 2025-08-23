@@ -120,7 +120,7 @@ router.put('/profile', verifyFirebaseToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Profile update error:', error);
-
+    
     if (error.name === 'ValidationError') {
       return res.status(400).json({
         success: false,
@@ -182,94 +182,6 @@ router.get('/:uid/document/:docType', async (req, res) => {
   } catch (err) {
     console.error('Document serve error:', err);
     res.status(500).json({ error: 'Failed to retrieve document' });
-  }
-});
-
-// Add a field to track if onboarding is completed
-router.put('/onboarding-status', verifyFirebaseToken, async (req, res) => {
-  try {
-    const { completed } = req.body;
-    const uid = req.user.uid;
-
-    if (typeof completed !== 'boolean') {
-      return res.status(400).json({ success: false, error: 'Onboarding status must be a boolean.' });
-    }
-
-    const updatedUser = await User.findOneAndUpdate(
-      { uid },
-      { $set: { 'onboardingCompleted': completed, 'updatedAt': new Date() } },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ success: false, error: 'User not found.' });
-    }
-
-    console.log(`✅ Onboarding status updated to ${completed} for user: ${uid}`);
-    res.json({
-      success: true,
-      message: 'Onboarding status updated successfully',
-      user: {
-        uid: updatedUser.uid,
-        onboardingCompleted: updatedUser.onboardingCompleted
-      }
-    });
-  } catch (error) {
-    console.error('Onboarding status update error:', error);
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ success: false, error: 'Validation failed', message: error.message });
-    }
-    res.status(500).json({ success: false, message: 'Failed to update onboarding status', error: error.message });
-  }
-});
-
-// Route to check if onboarding is completed
-router.get('/onboarding-status', verifyFirebaseToken, async (req, res) => {
-  try {
-    const uid = req.user.uid;
-    const user = await User.findOne({ uid }, 'onboardingCompleted');
-
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found.' });
-    }
-
-    res.json({
-      success: true,
-      onboardingCompleted: user.onboardingCompleted || false // Default to false if not set
-    });
-  } catch (error) {
-    console.error('Onboarding status check error:', error);
-    res.status(500).json({ success: false, message: 'Failed to check onboarding status', error: error.message });
-  }
-});
-
-
-// Route to get user profile by UID (for admin)
-router.get('/profile/:uid', verifyFirebaseToken, async (req, res) => {
-  try {
-    const { uid } = req.params;
-    
-    const user = await User.findOne({ uid }).select('-__v');
-    
-    if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found.' });
-    }
-
-    res.json({
-      success: true,
-      user: {
-        uid: user.uid,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        age: user.age,
-        driverVerification: user.driverVerification,
-        onboardingCompleted: user.onboardingCompleted
-      }
-    });
-  } catch (error) {
-    console.error('Get user profile error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get user profile', error: error.message });
   }
 });
 

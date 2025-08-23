@@ -18,9 +18,9 @@ router.use(cors({
  */
 router.post("/submit", verifyFirebaseToken, async (req, res) => {
   try {
-    const { uid, licenseDocument, identityDocument, vehiclePhoto } = req.body;
+    const { uid, idProof, license, rcBook, profilePhoto } = req.body;
 
-    if (!uid || !licenseDocument || !identityDocument || !vehiclePhoto) {
+    if (!uid || !idProof || !license || !rcBook || !profilePhoto) {
       return res.status(400).json({
         error: 'Missing required fields: uid and all document files are required'
       });
@@ -28,7 +28,7 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
 
     // Validate that each document has required properties
     const requiredDocProps = ['data', 'contentType', 'filename'];
-    const documents = { licenseDocument, identityDocument, vehiclePhoto };
+    const documents = { idProof, license, rcBook, profilePhoto };
 
     for (const [docName, doc] of Object.entries(documents)) {
       for (const prop of requiredDocProps) {
@@ -44,9 +44,10 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
       { uid },
       {
         $set: {
-          'driverVerification.documents.licenseDocument': licenseDocument,
-          'driverVerification.documents.identityDocument': identityDocument,
-          'driverVerification.documents.vehiclePhoto': vehiclePhoto,
+          'driverVerification.documents.idProof': idProof,
+          'driverVerification.documents.license': license,
+          'driverVerification.documents.rcBook': rcBook,
+          'driverVerification.documents.profilePhoto': profilePhoto,
           'driverVerification.submittedAt': new Date(),
           'driverVerification.isVerified': false
         }
