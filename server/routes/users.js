@@ -244,4 +244,33 @@ router.get('/onboarding-status', verifyFirebaseToken, async (req, res) => {
 });
 
 
+// Route to get user profile by UID (for admin)
+router.get('/profile/:uid', verifyFirebaseToken, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    
+    const user = await User.findOne({ uid }).select('-__v');
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found.' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        uid: user.uid,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        age: user.age,
+        driverVerification: user.driverVerification,
+        onboardingCompleted: user.onboardingCompleted
+      }
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get user profile', error: error.message });
+  }
+});
+
 export default router

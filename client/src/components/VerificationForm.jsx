@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { getAuth } from 'firebase/auth'
 import { API_BASE } from '../utils/api.js'
@@ -16,12 +17,33 @@ export default function VerificationForm() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        const base64 = reader.result.split(',')[1] // Remove data:image/jpeg;base64, prefix
+        resolve({
+          data: base64,
+          contentType: file.type,
+          filename: file.name,
+          size: file.size
+        })
+      }
+      reader.onerror = reject
+    })
+  }
 
   const handleFileSelect = (docType, file) => {
-    if (file && file.type.startsWith('image/')) {
+    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError('File size must be less than 5MB')
+        return
+      }
       setDocuments(prev => ({ ...prev, [docType]: file }))
+      setError('')
     } else {
-      alert('Please select a valid image file')
+      setError('Please select a valid image file (JPG, PNG) or PDF')
     }
   }
 
@@ -67,35 +89,33 @@ export default function VerificationForm() {
       // Get Firebase ID token
       const token = await user.getIdToken()
 
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append('licenseDocument', documents.licenseDocument)
-      formData.append('identityDocument', documents.identityDocument)
-      formData.append('vehiclePhoto', documents.vehiclePhoto)
+      // Convert files to base64
+      const licenseDocument = await convertFileToBase64(documents.licenseDocument)
+      const identityDocument = await convertFileToBase64(documents.identityDocument)
+      const vehiclePhoto = await convertFileToBase64(documents.vehiclePhoto)
 
-      // Upload documents to server
-      const uploadResponse = await fetch(`${API_BASE}/api/verify/submit`, {
+      // Send to server
+      const response = await fetch(`${API_BASE}/api/verify/submit`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify({
+          uid: user.uid,
+          licenseDocument,
+          identityDocument,
+          vehiclePhoto
+        })
       })
 
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text()
-        let errorData
-        try {
-          errorData = JSON.parse(errorText)
-        } catch {
-          errorData = { error: errorText }
-        }
-        throw new Error(errorData.error || 'Upload failed')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Upload failed')
       }
 
-      const uploadData = await uploadResponse.json()
-
-      if (uploadData.success) {
+      if (data.success) {
         setSuccess('✅ Verification documents submitted successfully! Your documents are under review.')
         // Reset form
         setDocuments({
@@ -112,7 +132,7 @@ export default function VerificationForm() {
           window.location.reload()
         }, 2000)
       } else {
-        throw new Error(uploadData.error || 'Upload failed')
+        throw new Error(data.error || 'Upload failed')
       }
 
     } catch (error) {
@@ -129,19 +149,6 @@ export default function VerificationForm() {
     vehiclePhoto: 'Vehicle Photo'
   }
 
-  const handleDragOver = (e, docType) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(prev => ({ ...prev, [docType]: true }))
-  }
-
-  const handleDragLeave = (e, docType) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(prev => ({ ...prev, [docType]: false }))
-  }
-
-
   const renderFileUpload = (docType) => (
     <div key={docType} className="mb-4">
       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -155,8 +162,9 @@ export default function VerificationForm() {
               ? 'border-green-400 bg-green-900 bg-opacity-20'
               : 'border-gray-600 hover:border-purple-400'
         }`}
-        onDragOver={(e) => handleDragOver(e, docType)}
-        onDragLeave={(e) => handleDragLeave(e, docType)}
+        onDragEnter={(e) => handleDrag(e, docType)}
+        onDragOver={(e) => handleDrag(e, docType)}
+        onDragLeave={(e) => handleDrag(e, docType)}
         onDrop={(e) => handleDrop(e, docType)}
         onClick={() => document.getElementById(`file-${docType}`).click()}
       >
@@ -190,9 +198,9 @@ export default function VerificationForm() {
           <div className="text-gray-400">
             <div className="text-3xl mb-2">📁</div>
             <div className="text-sm">
-              <label htmlFor={`file-${docType}`} className="cursor-pointer text-purple-400 hover:text-purple-300">
+              <span className="text-purple-400 hover:text-purple-300 cursor-pointer">
                 Click to select
-              </label>
+              </span>
               <span> or drag file here</span>
             </div>
             <div className="text-xs mt-1">Max 5MB • JPG, PNG, PDF</div>

@@ -29,7 +29,7 @@ import About from './pages/About.jsx'
 import Support from './pages/Support.jsx'
 import NotFound from './pages/NotFound.jsx'
 import Footer from './components/Footer.jsx'
-import Onboarding from './components/Onboarding'
+
 
 // ✅ BookingSuccess component
 function BookingSuccess() {
@@ -237,21 +237,7 @@ function App() {
   const dropdownRef = useRef()
   const mobileMenuRef = useRef()
   const navigate = useNavigate()
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingLoading, setOnboardingLoading] = useState(true)
-
-  const handleOnboardingComplete = (data) => {
-    setShowOnboarding(false)
-    // Apply theme and language preferences
-    if (data.theme === 'light') {
-      document.documentElement.classList.add('light')
-      document.documentElement.classList.remove('dark')
-    } else {
-      document.documentElement.classList.add('dark')
-      document.documentElement.classList.remove('light')
-    }
-    document.documentElement.setAttribute('data-theme', data.theme)
-  }
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -275,21 +261,7 @@ function App() {
     return () => unsubscribe()
   }, [auth])
 
-  useEffect(() => {
-    if (user && !loading) {
-      // Check if user needs onboarding
-      const hasCompletedOnboarding = localStorage.getItem(`onboarding_${user.uid}`)
-      if (!hasCompletedOnboarding) {
-        setShowOnboarding(true)
-      } else {
-        setShowOnboarding(false)
-      }
-      setOnboardingLoading(false)
-    } else if (!loading) {
-      setShowOnboarding(false)
-      setOnboardingLoading(false)
-    }
-  }, [user, loading])
+  
 
 
   useEffect(() => {
@@ -333,11 +305,7 @@ function App() {
     }
   }
 
-  if (loading || onboardingLoading) return <div className="text-center mt-10 text-white">Loading...</div>
-
-  if (showOnboarding && user) {
-    return <Onboarding onComplete={handleOnboardingComplete} />
-  }
+  if (loading) return <div className="text-center mt-10 text-white">Loading...</div>
 
   return (
     <div>
