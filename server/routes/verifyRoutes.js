@@ -40,7 +40,16 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
       }
     }
 
-    const user = await User.findOneAndUpdate(
+    // Check if user exists first
+    let user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(400).json({ 
+        error: "User not found. Please complete your profile setup first before submitting verification documents." 
+      });
+    }
+
+    // Update user verification data
+    user = await User.findOneAndUpdate(
       { uid },
       {
         $set: {
@@ -52,11 +61,11 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
           'driverVerification.isVerified': false
         }
       },
-      { new: true, upsert: true }
+      { new: true }
     );
 
     if (!user) {
-      return res.status(500).json({ error: "Failed to update or create user verification data." });
+      return res.status(500).json({ error: "Failed to update user verification data." });
     }
 
     console.log(`✅ Verification documents submitted for user: ${req.user.uid}`);
