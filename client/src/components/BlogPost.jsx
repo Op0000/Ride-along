@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import posts from '../data/posts.js'
+import posts from '../data/blog-content.js'
 
 function BlogPost() {
   const { slug } = useParams()

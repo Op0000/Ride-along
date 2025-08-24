@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import posts from '../data/posts.js'
+import posts from '../data/blog-content.js'
 
 function BlogList() {
   return (
