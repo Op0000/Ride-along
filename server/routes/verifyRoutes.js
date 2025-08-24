@@ -125,13 +125,15 @@ router.put("/admin/:uid", verifyFirebaseToken, async (req, res) => {
       return res.status(400).json({ error: 'isVerified must be a boolean value' });
     }
 
+    // Update both verification systems for compatibility
+    const updateData = {
+      'driverVerification.isVerified': isVerified,
+      'verification.status': isVerified ? 'approved' : 'pending'
+    };
+
     const user = await User.findOneAndUpdate(
       { uid },
-      {
-        $set: {
-          'driverVerification.isVerified': isVerified
-        }
-      },
+      { $set: updateData },
       { new: true }
     );
 
@@ -145,7 +147,7 @@ router.put("/admin/:uid", verifyFirebaseToken, async (req, res) => {
       user: {
         uid: user.uid,
         name: user.name,
-        isVerified: user.driverVerification?.isVerified || false
+        isVerified: user.driverVerification?.isVerified || (user.verification?.status === 'approved') || false
       }
     });
   } catch (err) {
@@ -161,19 +163,34 @@ router.put("/admin/:uid", verifyFirebaseToken, async (req, res) => {
  */
 router.get("/admin/all", verifyFirebaseToken, async (req, res) => {
   try {
+    // Find users with either verification.submittedAt or driverVerification.submittedAt
     const users = await User.find({
-      'driverVerification.submittedAt': { $exists: true }
-    }).select('uid name email driverVerification.isVerified driverVerification.submittedAt');
+      $or: [
+        { 'verification.submittedAt': { $exists: true } },
+        { 'driverVerification.submittedAt': { $exists: true } }
+      ]
+    }).select('uid name email verification driverVerification');
 
     return res.json({
       success: true,
-      users: users.map(user => ({
-        uid: user.uid,
-        name: user.name || 'No name',
-        email: user.email || 'No email',
-        isVerified: user.driverVerification?.isVerified || false,
-        submittedAt: user.driverVerification?.submittedAt
-      }))
+      users: users.map(user => {
+        // Check both verification systems
+        const verification = user.verification || {};
+        const driverVerification = user.driverVerification || {};
+        
+        const isVerified = driverVerification.isVerified || 
+                          (verification.status === 'approved') || false;
+        const submittedAt = driverVerification.submittedAt || verification.submittedAt;
+        
+        return {
+          uid: user.uid,
+          name: user.name || 'No name',
+          email: user.email || 'No email',
+          isVerified: isVerified,
+          submittedAt: submittedAt,
+          hasDocuments: !!(verification.documents || driverVerification.documents)
+        };
+      })
     });
   } catch (err) {
     console.error("❌ Admin get users error:", err);
