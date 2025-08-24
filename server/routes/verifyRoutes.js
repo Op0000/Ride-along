@@ -48,6 +48,13 @@ router.post("/submit", verifyFirebaseToken, async (req, res) => {
       });
     }
 
+    // Check if user has required fields due to previous data corruption
+    if (!user.email) {
+      return res.status(400).json({ 
+        error: "Your profile is incomplete. Please update your profile with a valid email address before submitting verification documents." 
+      });
+    }
+
     // Update user verification data
     user = await User.findOneAndUpdate(
       { uid },

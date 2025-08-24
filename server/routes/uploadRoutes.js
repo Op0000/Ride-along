@@ -48,6 +48,13 @@ router.post('/documents', upload.fields([
       })
     }
 
+    // Check if user has required fields due to previous data corruption
+    if (!user.email) {
+      return res.status(400).json({ 
+        error: 'Your profile is incomplete. Please update your profile with a valid email address before uploading documents.' 
+      })
+    }
+
     // Initialize verification object if it doesn't exist
     if (!user.verification) {
       user.verification = {
