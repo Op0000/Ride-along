@@ -40,7 +40,8 @@ export default function PostRide({ onPost }) {
 
         if (res.ok) {
           const data = await res.json()
-          setIsVerified(data?.driverVerification?.isVerified || false)
+          // 🔥 Fix: match your DB field (verification.status)
+          setIsVerified(data?.verification?.status === "verified")
         }
       } catch (err) {
         console.error('Verification check error:', err)
@@ -309,4 +310,4 @@ export default function PostRide({ onPost }) {
       </button>
     </form>
   )
-}
+        }
