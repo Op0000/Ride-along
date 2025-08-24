@@ -42,11 +42,9 @@ router.post('/documents', upload.fields([
 
     let user = await User.findOne({ uid: userId })
     if (!user) {
-      // Create user if not found
-      user = new User({
-        uid: userId,
-        name: 'User',
-        email: 'user@example.com'
+      // Don't create user here - they should be created through proper auth flow
+      return res.status(400).json({ 
+        error: 'User not found. Please complete your profile setup first before uploading documents.' 
       })
     }
 
