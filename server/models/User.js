@@ -39,6 +39,38 @@ const userSchema = new mongoose.Schema({
     submittedAt: Date,
     reviewedAt: Date,
     adminNotes: String
+  },
+  driverVerification: {
+    isVerified: { type: Boolean, default: false },
+    documents: {
+      idProof: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: { type: Date, default: Date.now }
+      },
+      license: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: { type: Date, default: Date.now }
+      },
+      rcBook: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: { type: Date, default: Date.now }
+      },
+      profilePhoto: {
+        data: String,
+        contentType: String,
+        filename: String,
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    },
+    submittedAt: Date,
+    reviewedAt: Date,
+    adminNotes: String
   }
 }, { timestamps: true })
 

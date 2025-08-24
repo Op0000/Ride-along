@@ -14,11 +14,47 @@ export default function SearchRide({ onResults }) {
       if (from) query.append('from', from)
       if (to) query.append('to', to)
 
+      console.log('🔍 Searching rides with query:', query.toString())
+      
       const res = await fetch(`https://ride-along-api.onrender.com/api/rides?${query}`)
+      
+      if (!res.ok) {
+        const errorText = await res.text()
+        console.error('API Error:', res.status, errorText)
+        throw new Error(`Failed to fetch rides: ${res.status}`)
+      }
+      
       const data = await res.json()
-      onResults(data)
+      console.log('📋 Search results:', data)
+      
+      // If there's an error in the response, fallback to all rides
+      if (data.error) {
+        console.warn('⚠️ API returned error, fetching all rides:', data.error)
+        const fallbackRes = await fetch('https://ride-along-api.onrender.com/api/rides')
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json()
+          onResults(fallbackData)
+        } else {
+          onResults([])
+        }
+      } else {
+        onResults(data)
+      }
     } catch (err) {
       console.error('❌ Search error:', err)
+      // Try to fetch all rides as fallback
+      try {
+        const fallbackRes = await fetch('https://ride-along-api.onrender.com/api/rides')
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json()
+          onResults(fallbackData)
+        } else {
+          onResults([])
+        }
+      } catch (fallbackErr) {
+        console.error('❌ Fallback also failed:', fallbackErr)
+        onResults([])
+      }
     } finally {
       setLoading(false)
     }

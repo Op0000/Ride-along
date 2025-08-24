@@ -76,27 +76,49 @@ router.post('/', verifyFirebaseToken, upload.array('vehiclePhotos', 5), async (r
 router.get('/', async (req, res) => {
   try {
     const { from, to } = req.query
+    console.log(`🔍 Searching rides: from="${from}", to="${to}"`)
+    
     const rides = await Ride.find()
+    console.log(`📋 Found ${rides.length} total rides`)
 
     if (!from && !to) return res.json(rides)
 
     const filtered = rides.filter((ride) => {
-      const route = [ride.from, ...(ride.via || []), ride.to].map(loc => loc.toLowerCase())
+      try {
+        // Ensure ride has required fields and they are strings
+        if (!ride.from || !ride.to || typeof ride.from !== 'string' || typeof ride.to !== 'string') {
+          console.log(`⚠️ Skipping ride with invalid from/to:`, {
+            id: ride._id,
+            from: ride.from,
+            to: ride.to
+          });
+          return false;
+        }
 
-      if (from && to) {
-        const fromIndex = route.indexOf(from.toLowerCase())
-        const toIndex = route.indexOf(to.toLowerCase())
-        return fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex
+        const route = [ride.from, ...(ride.via || []), ride.to]
+          .filter(loc => loc && typeof loc === 'string')
+          .map(loc => loc.toLowerCase());
+
+        if (from && to) {
+          const fromIndex = route.indexOf(from.toLowerCase())
+          const toIndex = route.indexOf(to.toLowerCase())
+          return fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex
+        }
+
+        if (from) return route.includes(from.toLowerCase())
+        if (to) return route.includes(to.toLowerCase())
+
+        return true
+      } catch (filterErr) {
+        console.error(`❌ Error filtering ride ${ride._id}:`, filterErr);
+        return false;
       }
-
-      if (from) return route.includes(from.toLowerCase())
-      if (to) return route.includes(to.toLowerCase())
-
-      return true
     })
 
+    console.log(`✅ Filtered down to ${filtered.length} rides`)
     res.json(filtered)
   } catch (err) {
+    console.error('❌ Error in ride search:', err);
     res.status(500).json({ error: err.message })
   }
 })
