@@ -31,13 +31,34 @@ export default function Home() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-extrabold text-purple-400 tracking-tight">
-          Ride Along 🚗
-        </h1>
-        <p className="text-zinc-400 mt-2 text-sm">Post your route or join one on the way</p>
+      {/* Hero / Intro */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-12 px-6 rounded-2xl shadow-lg mb-10 text-center">
+        <h1 className="text-4xl font-extrabold mb-4">Welcome to Ride Along 🚗</h1>
+        <p className="text-lg max-w-2xl mx-auto">
+          Ride Along helps travelers across India connect and share rides. 
+          Save money 💸, reduce pollution 🌍, and make your journeys smarter and safer.  
+          Whether you’re posting a ride or booking one, Ride Along is here to put a smile on your face 🙂
+        </p>
       </div>
+
+      {/* Features Section */}
+      <section className="py-10 px-6 text-center">
+        <h2 className="text-2xl font-semibold mb-6 text-purple-300">Why Ride Along?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+            <h3 className="text-xl font-bold mb-2">💸 Affordable</h3>
+            <p>Split travel costs and make rides cheaper for everyone.</p>
+          </div>
+          <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+            <h3 className="text-xl font-bold mb-2">🌍 Eco-Friendly</h3>
+            <p>Fewer cars on the road means less pollution and traffic.</p>
+          </div>
+          <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+            <h3 className="text-xl font-bold mb-2">🛡️ Safe & Verified</h3>
+            <p>All drivers are verified for your safety and peace of mind.</p>
+          </div>
+        </div>
+      </section>
 
       {/* Search Section */}
       <motion.div
@@ -133,6 +154,55 @@ export default function Home() {
         )}
       </motion.div>
 
+      {/* Blog Teaser */}
+<section className="py-10 px-6 text-center bg-zinc-800 rounded-xl shadow mb-10">
+  <h2 className="text-2xl font-semibold mb-6 text-purple-300">From Our Blog</h2>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+    <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+      <h3 className="font-bold text-lg">🚗 The Ultimate Guide to Ride Sharing in India</h3>
+      <p className="text-sm text-zinc-300 mt-2">
+        Discover how ride sharing is revolutionizing commutes with savings up to 70% and reduced traffic.
+      </p>
+      <Link to="/blog/the-ultimate-guide-to-ride-sharing" className="text-purple-400 underline text-sm mt-3 inline-block">
+        Read more
+      </Link>
+    </div>
+
+    <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+      <h3 className="font-bold text-lg">🚌 Delhi to Gurgaon Daily Commute</h3>
+      <p className="text-sm text-zinc-300 mt-2">
+        How shared rides cut commute costs by 75% while reducing stress on busy routes.
+      </p>
+      <Link to="/blog/delhi-to-gurgaon-daily-commute" className="text-purple-400 underline text-sm mt-3 inline-block">
+        Read more
+      </Link>
+    </div>
+
+    <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+      <h3 className="font-bold text-lg">🛡️ Women’s Safety in Ride Sharing</h3>
+      <p className="text-sm text-zinc-300 mt-2">
+        A complete safety guide for women using ride sharing in Indian cities.
+      </p>
+      <Link to="/blog/womens-safety-in-ride-sharing" className="text-purple-400 underline text-sm mt-3 inline-block">
+        Read more
+      </Link>
+    </div>
+  </div>
+
+  {/* Extra row for more articles */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8">
+    <div className="bg-white/10 p-6 rounded-xl shadow hover:bg-white/20 transition">
+      <h3 className="font-bold text-lg">🌧️ Monsoon Commuting in India</h3>
+      <p className="text-sm text-zinc-300 mt-2">
+        How smart ride sharing strategies save time and reduce stress during floods.
+      </p>
+      <Link to="/blog/monsoon-commuting-in-india" className="text-purple-400 underline text-sm mt-3 inline-block">
+        Read more
+      </Link>
+    </div>
+  </div>
+</section>
+
       {/* Trustpilot Widget */}
       <div className="mt-10 flex justify-center">
         <div className="trustpilot-widget"
@@ -151,4 +221,4 @@ export default function Home() {
       </div>
     </motion.div>
   )
-          }
+      }
