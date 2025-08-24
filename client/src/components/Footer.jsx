@@ -310,13 +310,13 @@ export default function Footer() {
             <div className="text-gray-400 text-sm mb-2 md:mb-0">
               <p>© {currentYear} Ride Along. All rights reserved.</p>
               <p className="text-xs mt-1">
-                Built with ❤️ for safe and efficient ride-sharing
+                Built by students with ❤️ for travelers
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-400 text-sm">
-                <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
-                <span>Service Status: In Development</span>
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span>Service Status: All systems online</span>
               </div>
             </div>
           </div>
