@@ -20,8 +20,38 @@ export default function PostRide({ onPost }) {
 
   const [vehiclePhotos, setVehiclePhotos] = useState([])
   const [loading, setLoading] = useState(false)
+  const [checkingVerification, setCheckingVerification] = useState(true)
+  const [isVerified, setIsVerified] = useState(false)
 
-  // Calculate distance and price when from/to changes
+  // ✅ Check driver verification status
+  useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        const user = getAuth().currentUser
+        if (!user) {
+          setCheckingVerification(false)
+          return
+        }
+
+        const token = await user.getIdToken()
+        const res = await fetch('https://ride-along-api.onrender.com/api/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setIsVerified(data?.driverVerification?.isVerified || false)
+        }
+      } catch (err) {
+        console.error('Verification check error:', err)
+      }
+      setCheckingVerification(false)
+    }
+
+    checkVerification()
+  }, [])
+
+  // ✅ Distance & Price auto-calc
   useEffect(() => {
     const calculateDistance = async () => {
       if (formData.from && formData.to) {
@@ -111,10 +141,7 @@ export default function PostRide({ onPost }) {
 
       const token = await user.getIdToken()
 
-      // Create FormData for file upload
       const formDataToSend = new FormData()
-      
-      // Add form fields
       Object.keys(formData).forEach(key => {
         if (key === 'price' || key === 'seatsAvailable') {
           formDataToSend.append(key, Number(formData[key]))
@@ -125,7 +152,6 @@ export default function PostRide({ onPost }) {
         }
       })
 
-      // Add vehicle photos
       vehiclePhotos.forEach(photo => {
         formDataToSend.append('vehiclePhotos', photo)
       })
@@ -172,6 +198,31 @@ export default function PostRide({ onPost }) {
     setLoading(false)
   }
 
+  // ✅ UI Restriction
+  if (checkingVerification) {
+    return (
+      <div className="bg-zinc-800 p-4 rounded-lg text-center">
+        <p className="text-purple-300">🔍 Checking driver verification...</p>
+      </div>
+    )
+  }
+
+  if (!isVerified) {
+    return (
+      <div className="bg-zinc-800 p-4 rounded-lg text-center">
+        <p className="text-yellow-400 font-bold">⚠️ Only verified drivers can post rides.</p>
+        <p className="text-zinc-400 mt-2">
+          Please complete{" "}
+          <a href="/profile" className="text-purple-400 underline">
+            Driver Verification
+          </a>{" "}
+          to unlock this feature.
+        </p>
+      </div>
+    )
+  }
+
+  // ✅ Show form if verified
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <AutocompleteInput
@@ -258,4 +309,4 @@ export default function PostRide({ onPost }) {
       </button>
     </form>
   )
-      }
+}
