@@ -5,7 +5,7 @@ const createTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER || 'ridealong.service@gmail.com',
+      user: process.env.EMAIL_USER || '',
       pass: process.env.EMAIL_PASSWORD || 'your-app-password'
     },
     debug: true, // Enable debug mode
